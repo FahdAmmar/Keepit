@@ -1,0 +1,45 @@
+{
+  "manifest_version": 3,
+  "name": "Keepit",
+  "version": "1.1.0",
+  "description": "احفظ مواقعك المفضّلة في مجموعات منظّمة وملوّنة: بنقرة واحدة من النافذة المنبثقة، عبر قائمة النقر بالزر الأيمن، أو باختصار لوحة مفاتيح فوري. صدّر أو استورد مجموعاتك بصيغة JSON في أي وقت.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup/index.html",
+    "default_title": "Keepit",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "options_ui": {
+    "page": "options/index.html",
+    "open_in_tab": true
+  },
+  "commands": {
+    "save-current-tab": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+S",
+        "mac": "Command+Shift+S"
+      },
+      "description": "حفظ التبويب الحالي في Keepit"
+    }
+  },
+  "permissions": [
+    "storage",
+    "contextMenus",
+    "activeTab",
+    "unlimitedStorage"
+  ],
+  "host_permissions": [],
+  "background": {
+    "service_worker": "background/index.js"
+  }
+}

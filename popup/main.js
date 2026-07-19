@@ -1107,6 +1107,8 @@
             serviceMaxCollectionsReached: "\u0644\u0627 \u064A\u0645\u0643\u0646 \u062A\u062C\u0627\u0648\u0632 {max} \u0645\u062C\u0645\u0648\u0639\u0629",
             serviceMaxItemsReached: "\u0644\u0627 \u064A\u0645\u0643\u0646 \u062A\u062C\u0627\u0648\u0632 {max} \u0639\u0646\u0635\u0631 \u062F\u0627\u062E\u0644 \u0645\u062C\u0645\u0648\u0639\u0629 \u0648\u0627\u062D\u062F\u0629",
             serviceDuplicateUrl: "\u0647\u0630\u0627 \u0627\u0644\u0631\u0627\u0628\u0637 \u0645\u062D\u0641\u0648\u0638 \u0628\u0627\u0644\u0641\u0639\u0644 \u0641\u064A \u0627\u0644\u0645\u062C\u0645\u0648\u0639\u0629",
+            serviceDuplicateItemTitle: "\u064A\u0648\u062C\u062F \u0645\u0648\u0642\u0639 \u0628\u0646\u0641\u0633 \u0627\u0644\u0627\u0633\u0645 \u0641\u064A \u0647\u0630\u0647 \u0627\u0644\u0645\u062C\u0645\u0648\u0639\u0629",
+            serviceDuplicateCollectionName: "\u062A\u0648\u062C\u062F \u0645\u062C\u0645\u0648\u0639\u0629 \u0628\u0646\u0641\u0633 \u0627\u0644\u0627\u0633\u0645 \u0628\u0627\u0644\u0641\u0639\u0644",
             serviceItemNotFound: "\u0627\u0644\u0639\u0646\u0635\u0631 \u063A\u064A\u0631 \u0645\u0648\u062C\u0648\u062F",
             defaultCollectionName: "\u0627\u0644\u0645\u062C\u0645\u0648\u0639\u0629 \u0627\u0644\u0623\u0648\u0644\u0649",
             importErrorInvalidJson: "\u0627\u0644\u0645\u0644\u0641 \u0644\u064A\u0633 \u0628\u0635\u064A\u063A\u0629 JSON \u0635\u0627\u0644\u062D\u0629",
@@ -1224,6 +1226,8 @@
             serviceMaxCollectionsReached: "You can't have more than {max} collections",
             serviceMaxItemsReached: "A collection can't have more than {max} items",
             serviceDuplicateUrl: "This link is already saved in the collection",
+            serviceDuplicateItemTitle: "A site with this title already exists in this collection",
+            serviceDuplicateCollectionName: "A collection with this name already exists",
             serviceItemNotFound: "This item no longer exists",
             defaultCollectionName: "My first collection",
             importErrorInvalidJson: "This file isn't valid JSON",
@@ -1338,6 +1342,7 @@
         if (i.collections.length >= 200) throw new N(n("serviceMaxCollectionsReached", {
             max: 200
         }));
+        if (globalThis.KeepitDedup && globalThis.KeepitDedup.findDuplicateCollection(i.collections, o.value)) throw new N(n("serviceDuplicateCollectionName"));
         let a = Date.now(),
             s = {
                 id: ae(),
@@ -1364,7 +1369,11 @@
         if (s.items.length >= 1e3) throw new N(n("serviceMaxItemsReached", {
             max: 1e3
         }));
-        if (s.items.some(f => f.url === o.value)) throw new N(n("serviceDuplicateUrl"));
+        if (globalThis.KeepitDedup) {
+            let dup = globalThis.KeepitDedup.findDuplicateItem(s.items, o.value, i.value);
+            if (dup.url) throw new N(n("serviceDuplicateUrl"));
+            if (dup.title) throw new N(n("serviceDuplicateItemTitle"));
+        } else if (s.items.some(f => f.url === o.value)) throw new N(n("serviceDuplicateUrl"));
         let h = {
             id: ae(),
             url: o.value,

@@ -1,0 +1,83 @@
+/* ==========================================================================
+   Keepit — Local File Sync panel
+   إضافات CSS صغيرة خاصة بميزة "المزامنة المحلية" فقط. تعتمد كليًا على
+   متغيرات التصميم والأصناف الموجودة أصلاً في main.css (لا إعادة تعريف
+   لأي قيمة لون/تباعد/زوايا) — لضمان تطابق بصري كامل مع بقية الصفحة في
+   كلا الوضعين الفاتح والداكن، وفي كلا اتجاهي RTL وLTR.
+   ========================================================================== */
+
+/* نقطة الحالة الصغيرة فوق زر التفعيل في الشريط، وبجانب النص داخل الحوار */
+.keepit-ls-dot {
+  position: absolute;
+  top: 4px;
+  inset-inline-end: 4px;
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-full);
+  background: var(--color-text-tertiary);
+  border: 1.5px solid var(--color-surface);
+  transition: background-color var(--transition-fast);
+}
+.keepit-ls-dot[data-state="ok"] { background: var(--color-success); }
+.keepit-ls-dot[data-state="warning"] { background: var(--color-warning); }
+.keepit-ls-dot[data-state="error"] { background: var(--color-error); }
+
+.keepit-ls-dot--inline {
+  position: static;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border: none;
+  flex-shrink: 0;
+}
+
+.keepit-ls-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.keepit-ls-intro {
+  font-size: var(--fs-xs);
+  color: var(--color-text-secondary);
+  line-height: var(--lh-normal);
+}
+
+.keepit-ls-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  color: var(--color-text);
+}
+
+.keepit-ls-note {
+  font-size: var(--fs-2xs);
+  color: var(--color-text-tertiary);
+  line-height: var(--lh-normal);
+}
+
+.keepit-ls-actions {
+  flex-wrap: wrap;
+}
+
+/* قسم "السحب التلقائي" داخل نفس الحوار — فاصل خفيف عن قسم الكتابة أعلاه */
+.keepit-ls-pull-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.keepit-ls-section-title {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.keepit-ls-warning {
+  color: var(--color-warning);
+}

@@ -1988,9 +1988,7 @@
                 Z.setPreference(Z.resolved === "dark" ? "light" : "dark").then(U)
             },
             onToggleLocale: () => {
-                Y.setPreference(Y.locale === "ar" ? "en" : "ar").then(() => {
-                    U(), mountedScreenName = null, D()
-                })
+                Y.setPreference(Y.locale === "ar" ? "en" : "ar")
             },
             onOpenManager: () => {
                 Mt()
@@ -2042,6 +2040,15 @@
         }), listSearchInputEl = e, t.append(r("div", {
             className: "popup__search"
         }, [v("search"), e])), listResultsEl = r("div", {}, []), t.append(listResultsEl), renderQuickAddSection(), renderListResults(), t
+    }
+
+    // يحدّث placeholder و aria-label لحقل البحث المُركَّب مسبقًا دون إعادة
+    // إنشائه، حفاظًا على تركيز/موضع المؤشر عند تبديل اللغة أثناء الكتابة.
+    function refreshListSearchTexts() {
+        listSearchInputEl && (
+            listSearchInputEl.placeholder = n("searchPlaceholder"),
+            listSearchInputEl.setAttribute("aria-label", n("searchAriaLabel"))
+        );
     }
 
     function renderQuickAddSection() {
@@ -2259,7 +2266,7 @@
     }
     async function Dt() {
         Z = await $e(() => U()), Y = await Ne(() => {
-            U(), D()
+            U(), D(), refreshListSearchTexts()
         }), U();
         let [t, e, o, i] = await Promise.all([Oe(), M(), Ve(), Ft()]);
         m.collections = t, m.activeTab = o, m.shortcutHint = i;

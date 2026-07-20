@@ -17,5 +17,11 @@
   <body>
     <div id="app"></div>
     <script src="./main.js"></script>
+    <!--
+      وحدة صامتة بلا واجهة: تتحقق من ملف المزامنة المحلية عند فتح النافذة
+      المنبثقة (انظر شرحها في الملف نفسه). type="module" يجعلها مؤجَّلة
+      تلقائيًا فلا تُبطئ رسم main.js إطلاقًا.
+    -->
+    <script type="module" src="./local-sync-init.js"></script>
   </body>
 </html>

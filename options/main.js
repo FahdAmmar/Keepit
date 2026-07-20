@@ -2088,6 +2088,29 @@
         }, [v("plus"), a("newCollectionAction")])])])
     }
 
+    // يحدّث النصوص الثابتة المترجمة داخل هيكل الشريط الجانبي (placeholder
+    // حقل البحث، aria-label الخاص به، وتسمية زر "مجموعة جديدة") في مكانها
+    // دون إعادة بناء أي عنصر DOM. هذا يُستدعى في كل مرة تتغيّر فيها اللغة
+    // (محليًا من هذه الصفحة أو من تبويب/نافذة أخرى) بدل إعادة تعيين
+    // sidebarAsideEl إلى null، لأن ذلك كان يجعل Q() يظن أن الشريط الجانبي
+    // لم يُركَّب بعد فيُنشئ نسخة ثانية كاملة (شريط جانبي + لوحة رئيسية)
+    // ويضيفها فوق النسخة الأصلية دون إزالتها — وهو تحديدًا سبب تكرار
+    // الشريط الجانبي عند الضغط على زر تبديل اللغة.
+    function refreshSidebarShellTexts() {
+        if (!sidebarAsideEl) return;
+        if (sidebarSearchInputEl) {
+            sidebarSearchInputEl.placeholder = a("searchPlaceholder");
+            sidebarSearchInputEl.setAttribute("aria-label", a("searchAriaLabel"));
+        }
+        let btn = sidebarAsideEl.querySelector(".options__sidebar-footer .btn");
+        if (btn) {
+            let last = btn.lastChild;
+            last && last.nodeType === Node.TEXT_NODE
+                ? (last.textContent = a("newCollectionAction"))
+                : btn.append(document.createTextNode(a("newCollectionAction")));
+        }
+    }
+
     function renderSidebarCollections(t) {
         sidebarListEl && (pe(sidebarListEl), sidebarListEl.append(...t.collections.map(r => bt({
             collection: r,
@@ -2399,9 +2422,7 @@
                 ve.setPreference(ve.resolved === "dark" ? "light" : "dark").then(re)
             },
             onToggleLocale: () => {
-                he.setPreference(he.locale === "ar" ? "en" : "ar").then(() => {
-                    re(), sidebarAsideEl = null, Q()
-                })
+                he.setPreference(he.locale === "ar" ? "en" : "ar")
             },
             onImport: () => Et(document.body, {
                 onConfirm: (e, o) => void fo(e, o),
@@ -2425,7 +2446,7 @@
     }
 
     function Q() {
-        sidebarAsideEl || (sidebarAsideEl = buildSidebarShell({
+        sidebarAsideEl || (pe(fe), sidebarAsideEl = buildSidebarShell({
             searchQuery: y.searchQuery,
             onSearchChange: e => {
                 y.searchQuery = e, Q()
@@ -2584,7 +2605,7 @@
     }
     async function vo() {
         ve = await gt(() => re()), he = await Be(() => {
-            re(), Q()
+            re(), Q(), refreshSidebarShellTexts()
         }), re();
         let [t, e] = await Promise.all([Xe(), P()]);
         y.collections = t;

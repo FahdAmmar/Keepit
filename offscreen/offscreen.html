@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Keepit — local sync (offscreen)</title>
+    <!--
+      مستند غير مرئي للمستخدم إطلاقًا (chrome.offscreen). الغرض الوحيد منه
+      هو امتلاك سياق DOM حقيقي يمكن فيه استخدام File System Access API،
+      وهي واجهة برمجية غير متاحة داخل service worker. لا يحتوي على أي
+      عناصر واجهة، ولا يُفتح كتبويب، ولا يظهر للمستخدم بأي شكل.
+    -->
+  </head>
+  <body>
+    <!--
+      يوفّر globalThis.KeepitDedup (منطق منع التكرار عند الدمج) — يجب أن
+      يُحمَّل قبل offscreen.js لأن merge-pull.js (المُستورَد من داخله) يعتمد
+      عليه مباشرةً. نفس الترتيب المُتّبع في options/index.html وpopup/index.html.
+    -->
+    <script src="../shared/dedup.js"></script>
+    <script type="module" src="./offscreen.js"></script>
+  </body>
+</html>

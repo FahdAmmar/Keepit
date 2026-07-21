@@ -33,7 +33,7 @@ const DEFAULT_STATUS = Object.freeze({
   folderName: /** @type {string | null} */ (null),
   lastSyncedAt: /** @type {number | null} */ (null),
   lastError: /** @type {string | null} */ (null),
-  pullMode: PULL_MODE.MERGE,
+  pullMode: PULL_MODE.REPLACE,
   lastPulledAt: /** @type {number | null} */ (null),
   lastPullError: /** @type {string | null} */ (null),
 });
@@ -363,7 +363,7 @@ function buildPullModeGroup(locale, bodyContainer) {
 }
 
 function buildPullModeOption(locale, bodyContainer, { value, titleKey, descKey, warningKey }) {
-  const currentMode = currentStatus.pullMode || PULL_MODE.MERGE;
+  const currentMode = currentStatus.pullMode || PULL_MODE.REPLACE;
   const isSelected = currentMode === value;
 
   const card = document.createElement("label");

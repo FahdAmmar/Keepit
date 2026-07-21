@@ -1333,7 +1333,7 @@
         return o
     }
     async function Oe() {
-        return [...(await M()).collections].sort((e, o) => e.pinned !== o.pinned ? e.pinned ? -1 : 1 : o.updatedAt - e.updatedAt)
+        return [...(await M()).collections].sort((e, o) => e.pinned !== o.pinned ? e.pinned ? -1 : 1 : o.createdAt - e.createdAt)
     }
     async function He(t, e = Ae) {
         let o = Me(t);
@@ -1491,7 +1491,7 @@
             sliders: '<path d="M5 6h6M15 6h4M5 12h10M19 12h0M5 18h2M11 18h8"/><circle cx="13" cy="6" r="1.6"/><circle cx="17" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/>',
             settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 12.9v-1.8l-2-.4a5.8 5.8 0 0 0-.6-1.4l1.1-1.7-1.3-1.3-1.7 1.1a5.8 5.8 0 0 0-1.4-.6l-.4-2h-1.8l-.4 2a5.8 5.8 0 0 0-1.4.6L8 6.3 6.7 7.6l1.1 1.7a5.8 5.8 0 0 0-.6 1.4l-2 .4v1.8l2 .4c.13.5.33.98.6 1.4l-1.1 1.7 1.3 1.3 1.7-1.1c.42.27.9.47 1.4.6l.4 2h1.8l.4-2c.5-.13.98-.33 1.4-.6l1.7 1.1 1.3-1.3-1.1-1.7c.27-.42.47-.9.6-1.4Z"/>',
             copy: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
-            logo: '<path d="M6 3.5h9.5L18.5 6.5V20.5H6Z"/><path d="M15.3 3.5V7h3.5"/><path d="M9 12.5l2 2 4-4.5"/>'
+            logo: '<path d="M7 3.5h10a1.5 1.5 0 0 1 1.5 1.5v14.8l-6.5-3.9L5.5 19.8V5A1.5 1.5 0 0 1 7 3.5Z"/><path d="M9 11.2l2.2 2.2L15.2 9"/>'
         },
         Lt = new DOMParser;
 
@@ -2272,7 +2272,7 @@
         m.collections = t, m.activeTab = o, m.shortcutHint = i;
         let a = t.some(s => s.id === e.lastUsedCollectionId);
         m.quickAddCollectionId = a ? e.lastUsedCollectionId : t[0]?.id ?? null, D(), ye(s => {
-            m.collections = [...s.collections].sort((p, h) => p.pinned !== h.pinned ? p.pinned ? -1 : 1 : h.updatedAt - p.updatedAt), m.collections.some(p => p.id === m.quickAddCollectionId) || (m.quickAddCollectionId = m.collections[0]?.id ?? null), D()
+            m.collections = [...s.collections].sort((p, h) => p.pinned !== h.pinned ? p.pinned ? -1 : 1 : h.createdAt - p.createdAt), m.collections.some(p => p.id === m.quickAddCollectionId) || (m.quickAddCollectionId = m.collections[0]?.id ?? null), D()
         })
     }
     async function Ft() {

@@ -1357,7 +1357,7 @@
         return i
     }
     async function S() {
-        return [...(await L()).collections].sort((t, i) => t.pinned !== i.pinned ? t.pinned ? -1 : 1 : i.updatedAt - t.updatedAt)
+        return [...(await L()).collections].sort((t, i) => t.pinned !== i.pinned ? t.pinned ? -1 : 1 : i.createdAt - t.createdAt)
     }
     async function te(e, t) {
         let i = he(t.url);

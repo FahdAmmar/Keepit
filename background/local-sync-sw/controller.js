@@ -113,7 +113,7 @@
 
       const result = await sendPullRequest({
         fileName: status.fileName || C.DEFAULT_FILE_NAME,
-        mode: status.pullMode || C.PULL_MODE_MERGE,
+        mode: status.pullMode || C.PULL_MODE_REPLACE,
       });
 
       if (result.ok) {
@@ -214,7 +214,7 @@
         enabled: false,
         fileName: C.DEFAULT_FILE_NAME,
         folderName: null,
-        pullMode: C.PULL_MODE_MERGE,
+        pullMode: C.PULL_MODE_REPLACE,
         lastSyncedAt: null,
         lastError: null,
         lastPulledAt: null,

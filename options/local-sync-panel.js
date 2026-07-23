@@ -151,8 +151,13 @@ function updateTriggerDot() {
 
 function statusVariant() {
   if (!FS_ACCESS_SUPPORTED || !currentStatus.folderName || !currentStatus.enabled) return "off";
-  if (currentStatus.lastError) {
-    return currentStatus.lastError === SYNC_ERRORS.PERMISSION_REQUIRED ? "warning" : "error";
+  // نأخذ بعين الاعتبار خطأ الدفع (push) أو السحب (pull) أيهما موجودًا —
+  // فشل السحب فقط (مثلًا إذن قراءة/كتابة منتهي في هذا المتصفح تحديدًا)
+  // كان يمر دون أي إشارة مرئية على الزر، رغم أنه هو تحديدًا سبب عدم ظهور
+  // تعديلات المتصفحات الأخرى هنا.
+  const activeError = currentStatus.lastError || currentStatus.lastPullError;
+  if (activeError) {
+    return activeError === SYNC_ERRORS.PERMISSION_REQUIRED ? "warning" : "error";
   }
   return "ok";
 }
@@ -487,7 +492,10 @@ async function onChooseFolder(bodyContainer) {
 
     updateTriggerDot();
     renderBody(bodyContainer);
-    await syncNow(bodyContainer);
+    // أول اتصال فعلي بمجلد: نجبر وضع "دمج" دائمًا هنا بغضّ النظر عن الوضع
+    // المُختار مستقبلًا — هذا المتصفح قد يحمل بيانات محلية لم تُزامَن مع أي
+    // جهة من قبل، فلا نريد أن يمحوها أول اتصال بصمت.
+    await reconcileThenPush(bodyContainer, PULL_MODE.MERGE);
   } catch (err) {
     if (err && typeof err === "object" && err.name === "AbortError") return; // المستخدم أغلق النافذة، ليس خطأً
     console.error("[Keepit local sync] folder pick failed", err);
@@ -495,6 +503,37 @@ async function onChooseFolder(bodyContainer) {
     updateTriggerDot();
     renderBody(bodyContainer);
   }
+}
+
+/**
+ * تُستخدَم عند أول اتصال بمجلد، أو عند إعادة الاتصال بعد انقطاع إذن. في
+ * كلتا الحالتين قد يحتوي الملف بالفعل على تعديلات كتبها متصفح آخر أثناء
+ * غياب هذا المتصفح (لم يُربَط بعد، أو انقطع إذنه مؤقتًا). الكتابة المباشرة
+ * (push) في هذه اللحظة كانت تستبدل محتوى الملف ببيانات هذا المتصفح فقط،
+ * فتمحو بصمت أي تصنيف/موقع أضافه المتصفح الآخر خلال تلك الفترة. لذلك نسحب
+ * وندمج أولًا بالوضع المُمرَّر، ثم نكتب الناتج — لا فقدان بيانات عند لحظة
+ * الربط/إعادة الربط تحديدًا.
+ *
+ * الوضع يختلف حسب السياق (راجع مواضع الاستدعاء):
+ *   - أول اتصال: MERGE دائمًا (أمان — لا حذف أبدًا)، حتى لو كان الوضع
+ *     المُختار للمستخدم هو "استبدال"، لأن هذا المتصفح قد يحمل بيانات محلية
+ *     لم تصل للملف المشترك بعد.
+ *   - إعادة الاتصال (كان متصلاً من قبل، انقطع إذنه فقط): وضع المستخدم
+ *     المُختار كما هو (عادة "استبدال")، لأن هذا المتصفح جزء فعلي من مجموعة
+ *     المزامنة أصلاً، ويجب أن يلتقط أي حذف حصل في غيابه، لا أن يتجاهله.
+ * @param {HTMLElement} bodyContainer
+ * @param {string} mode - أحد قيم PULL_MODE
+ */
+async function reconcileThenPush(bodyContainer, mode) {
+  const pullResult = await pullFromLocalFolder({
+    fileName: currentStatus.fileName,
+    mode,
+  });
+  await persistStatus({
+    lastPulledAt: Date.now(),
+    lastPullError: pullResult.ok ? null : pullResult.error,
+  });
+  await syncNow(bodyContainer);
 }
 
 async function onReconnect(bodyContainer) {
@@ -509,7 +548,10 @@ async function onReconnect(bodyContainer) {
     if (result === "granted") {
       await persistStatus({ lastError: null });
       renderBody(bodyContainer);
-      await syncNow(bodyContainer);
+      // إعادة اتصال، وليس اتصالاً أول — نحترم وضع المستخدم المُختار (عادة
+      // "استبدال") ليلتقط أي حذف حصل في متصفحات أخرى أثناء غياب هذا
+      // المتصفح، بدل تجاهله كما كان يحدث بفرض "دمج" هنا سابقًا.
+      await reconcileThenPush(bodyContainer, currentStatus.pullMode || PULL_MODE.REPLACE);
       return;
     }
     await persistStatus({ lastError: SYNC_ERRORS.PERMISSION_REQUIRED });

@@ -43,7 +43,9 @@ export function extractExportCollections(parsedJson) {
 
 /**
  * يحوّل مصفوفة تصنيفات بصيغة التصدير إلى كائنات بالشكل الداخلي، مع توليد
- * معرّفات وحقول تشغيلية جديدة تمامًا (id، order، pinned، updatedAt).
+ * معرّفات وحقول تشغيلية جديدة تمامًا (id، order، updatedAt). أما pinned
+ * فتُقرأ من الملف نفسه (وليست دائمًا false) لأن export-schema.js يكتبها
+ * الآن عمدًا لأغراض المزامنة بين المتصفحات.
  * التصنيفات/العناصر غير الصالحة تُتجاهَل بصمت وتُحتسَب في العدّاد المُرجَع.
  *
  * @param {Array<any>} exportCollections
@@ -81,7 +83,7 @@ export function toInternalCollections(exportCollections) {
       id: crypto.randomUUID(),
       name,
       color: typeof raw.color === "string" && raw.color ? raw.color : "indigo",
-      pinned: false,
+      pinned: raw.pinned === true,
       createdAt: now,
       updatedAt: now,
       items: internalItems,

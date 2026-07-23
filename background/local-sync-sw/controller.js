@@ -106,6 +106,21 @@
     if (pullInFlight) return pullInFlight;
 
     pullInFlight = (async () => {
+      // إن كان هناك تغيير محلي بانتظار الكتابة (لا يزال داخل نافذة
+      // الـ debounce ولم يُكتب إلى الملف بعد)، نكتبه الآن فورًا قبل أي
+      // سحب. بدون هذا، قد يقرأ السحب نسخة من الملف لا تحتوي آخر تعديل
+      // محلي حصل للتو، وفي وضع "استبدال" هذا يعني ضياع ذلك التعديل
+      // (يُستبدَل بمحتوى أقدم من الملف نفسه).
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+        debounceTimer = null;
+        const stateToFlush = pendingState;
+        pendingState = null;
+        await runSync(stateToFlush).catch((err) => {
+          console.error("[Keepit local sync] flush before pull failed", err);
+        });
+      }
+
       const status = await getStatus();
       if (!status.enabled || !status.folderName) return;
 

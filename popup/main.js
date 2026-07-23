@@ -1024,6 +1024,10 @@
             themeSwitchToDark: "\u0627\u0644\u062A\u0628\u062F\u064A\u0644 \u0625\u0644\u0649 \u0627\u0644\u0648\u0636\u0639 \u0627\u0644\u062F\u0627\u0643\u0646",
             languageSwitchAriaLabel: "\u062A\u063A\u064A\u064A\u0631 \u0644\u063A\u0629 \u0627\u0644\u0648\u0627\u062C\u0647\u0629",
             openFullManager: "\u0641\u062A\u062D \u0627\u0644\u0645\u062F\u064A\u0631 \u0627\u0644\u0643\u0627\u0645\u0644",
+            refreshAriaLabel: "تحديث البيانات",
+            refreshToastChanged: "تم تحديث البيانات من المتصفحات الأخرى",
+            refreshToastUpToDate: "البيانات محدَّثة بالفعل",
+            refreshToastError: "تعذّر التحديث، حاول مجددًا",
             quickAddTabUnavailable: "\u062A\u0639\u0630\u0651\u0631 \u0642\u0631\u0627\u0621\u0629 \u0628\u064A\u0627\u0646\u0627\u062A \u0647\u0630\u0627 \u0627\u0644\u062A\u0628\u0648\u064A\u0628",
             quickAddSelectCollection: "\u0627\u062E\u062A\u0631 \u0627\u0644\u0645\u062C\u0645\u0648\u0639\u0629",
             quickAddSaved: "\u0645\u062D\u0641\u0648\u0638",
@@ -1143,6 +1147,10 @@
             themeSwitchToDark: "Switch to dark mode",
             languageSwitchAriaLabel: "Change interface language",
             openFullManager: "Open full manager",
+            refreshAriaLabel: "Refresh data",
+            refreshToastChanged: "Data updated from other browsers",
+            refreshToastUpToDate: "Data is already up to date",
+            refreshToastError: "Couldn't refresh, try again",
             quickAddTabUnavailable: "Couldn't read this tab's info",
             quickAddSelectCollection: "Choose collection",
             quickAddSaved: "Saved",
@@ -1489,6 +1497,7 @@
             alertTriangle: '<path d="M12 4.5 21 19.5H3L12 4.5Z"/><path d="M12 10v4.2M12 17.2h.01"/>',
             info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.7h.01"/>',
             sliders: '<path d="M5 6h6M15 6h4M5 12h10M19 12h0M5 18h2M11 18h8"/><circle cx="13" cy="6" r="1.6"/><circle cx="17" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/>',
+            refresh: '<path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>',
             settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 12.9v-1.8l-2-.4a5.8 5.8 0 0 0-.6-1.4l1.1-1.7-1.3-1.3-1.7 1.1a5.8 5.8 0 0 0-1.4-.6l-.4-2h-1.8l-.4 2a5.8 5.8 0 0 0-1.4.6L8 6.3 6.7 7.6l1.1 1.7a5.8 5.8 0 0 0-.6 1.4l-2 .4v1.8l2 .4c.13.5.33.98.6 1.4l-1.1 1.7 1.3 1.3 1.7-1.1c.42.27.9.47 1.4.6l.4 2h1.8l.4-2c.5-.13.98-.33 1.4-.6l1.7 1.1 1.3-1.3-1.1-1.7c.27-.42.47-.9.6-1.4Z"/>',
             copy: '<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
             logo: '<path d="M7 3.5h10a1.5 1.5 0 0 1 1.5 1.5v14.8l-6.5-3.9L5.5 19.8V5A1.5 1.5 0 0 1 7 3.5Z"/><path d="M9 11.2l2.2 2.2L15.2 9"/>'
@@ -1873,6 +1882,23 @@
     function ot(t) {
         let e = t.resolvedTheme === "dark",
             o = t.locale === "ar" ? "EN" : "\u0639";
+        let refreshBtn = r("button", {
+            type: "button",
+            className: "btn btn--icon btn--refresh",
+            attrs: {
+                "aria-label": n("refreshAriaLabel"),
+                title: n("refreshAriaLabel")
+            }
+        }, [v("refresh")]);
+        refreshBtn.addEventListener("click", async () => {
+            if (refreshBtn.classList.contains("is-loading")) return;
+            refreshBtn.classList.add("is-loading");
+            try {
+                await t.onRefresh();
+            } finally {
+                refreshBtn.classList.remove("is-loading");
+            }
+        });
         return r("header", {
             className: "popup__header"
         }, [r("div", {
@@ -1897,7 +1923,7 @@
                 "aria-label": e ? n("themeSwitchToLight") : n("themeSwitchToDark")
             },
             onClick: () => t.onToggleTheme()
-        }, [v(e ? "sun" : "moon")]), r("button", {
+        }, [v(e ? "sun" : "moon")]), refreshBtn, r("button", {
             type: "button",
             className: "btn btn--icon",
             attrs: {
@@ -1992,6 +2018,20 @@
             },
             onOpenManager: () => {
                 Mt()
+            },
+            onRefresh: async () => {
+                let result;
+                try {
+                    result = typeof window.KeepitLocalSyncRefresh === "function" ? await window.KeepitLocalSyncRefresh() : {
+                        ok: !0,
+                        changed: !1
+                    }
+                } catch {
+                    result = {
+                        ok: !1
+                    }
+                }
+                result && result.ok !== !1 ? F.show(n(result.changed ? "refreshToastChanged" : "refreshToastUpToDate"), result.changed ? "success" : "info") : F.show(n("refreshToastError"), "error")
             }
         });
         pe.replaceWith(t), pe = t

@@ -916,7 +916,7 @@
         ce = 99;
 
     function Ke(e) {
-        return e === 0 ? "" : e > ce ? `${ce}+` : String(e)
+        return ""
     }
     async function F(e) {
         let t = e.reduce((i, n) => i + n.items.length, 0);

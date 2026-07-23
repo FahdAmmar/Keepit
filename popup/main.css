@@ -118,15 +118,15 @@
 
   /* Mesh background — soft aurora tints */
   --bg-mesh:
-    radial-gradient(900px 500px at 12% -8%, rgba(34, 197, 94, .14), transparent 60%),
-    radial-gradient(700px 480px at 110% 8%, rgba(16, 185, 129, .12), transparent 55%),
+    radial-gradient(900px 500px at 12% -8%, rgba(52, 179, 137, .14), transparent 60%),
+    radial-gradient(700px 480px at 110% 8%, rgba(45, 156, 119, .12), transparent 55%),
     radial-gradient(600px 460px at 50% 120%, rgba(34, 160, 107, .08), transparent 60%);
 
   --shadow-sm: 0 1px 2px rgba(16, 24, 40, .05), 0 1px 1px rgba(16, 24, 40, .04);
   --shadow-md: 0 6px 18px rgba(16, 24,40, .08), 0 2px 4px rgba(16,24,40,.04);
   --shadow-lg: 0 24px 60px rgba(16, 24, 40, .16), 0 8px 20px rgba(16, 24, 40, .08);
-  --shadow-focus: 0 0 0 3px rgba(34, 197, 94, .28), 0 0 22px rgba(34, 197, 94, .22);
-  --shadow-glow-primary: 0 6px 22px rgba(34, 197, 94, .42), 0 2px 6px rgba(34, 197, 94, .28);
+  --shadow-focus: 0 0 0 3px rgba(52, 179, 137, .28), 0 0 22px rgba(52, 179, 137, .22);
+  --shadow-glow-primary: 0 6px 22px rgba(52, 179, 137, .42), 0 2px 6px rgba(52, 179, 137, .28);
 }
 
 [data-theme=dark] {
@@ -141,7 +141,7 @@
   --color-text: #edeef1;
   --color-text-secondary: #9ea4b2;
   --color-text-tertiary: #6a6f7d;
-  --color-primary-tint: rgba(34, 197, 94, .14);
+  --color-primary-tint: rgba(52, 179, 137, .14);
 
   --color-tag-indigo: #7b8cf2;
   --color-tag-sky: #4fc1ee;
@@ -156,15 +156,15 @@
   --glass-highlight: rgba(255, 255, 255, .06);
 
   --bg-mesh:
-    radial-gradient(900px 520px at 8% -10%, rgba(34, 197, 94, .18), transparent 58%),
-    radial-gradient(720px 500px at 115% 6%, rgba(16, 185, 129, .16), transparent 55%),
-    radial-gradient(620px 480px at 50% 125%, rgba(52, 201, 138, .08), transparent 60%);
+    radial-gradient(900px 520px at 8% -10%, rgba(52, 179, 137, .18), transparent 58%),
+    radial-gradient(720px 500px at 115% 6%, rgba(45, 156, 119, .16), transparent 55%),
+    radial-gradient(620px 480px at 50% 125%, rgba(56, 197, 150, .08), transparent 60%);
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
   --shadow-md: 0 8px 22px rgba(0, 0, 0, .55), 0 2px 6px rgba(0, 0, 0, .4);
   --shadow-lg: 0 28px 64px rgba(0, 0, 0, .68), 0 10px 24px rgba(0, 0, 0, .5);
-  --shadow-focus: 0 0 0 3px rgba(74, 222, 128, .38), 0 0 24px rgba(74, 222, 128, .32);
-  --shadow-glow-primary: 0 8px 28px rgba(34, 197, 94, .5), 0 2px 8px rgba(34, 197, 94, .35);
+  --shadow-focus: 0 0 0 3px rgba(89, 207, 168, .38), 0 0 24px rgba(89, 207, 168, .32);
+  --shadow-glow-primary: 0 8px 28px rgba(52, 179, 137, .5), 0 2px 8px rgba(52, 179, 137, .35);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -290,7 +290,7 @@ input, textarea, select, button { font-family: inherit; font-size: inherit; }
 .btn--primary:hover:not(:disabled)::before { transform: translateX(120%); }
 .btn--primary:hover:not(:disabled) {
   filter: brightness(1.06) saturate(1.05);
-  box-shadow: 0 10px 30px rgba(34, 197, 94, .55), 0 3px 10px rgba(16, 185, 129, .35);
+  box-shadow: 0 10px 30px rgba(52, 179, 137, .55), 0 3px 10px rgba(45, 156, 119, .35);
 }
 .btn--primary:active:not(:disabled) { transform: scale(.97); filter: brightness(.96); }
 

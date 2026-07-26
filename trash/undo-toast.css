@@ -1,0 +1,34 @@
+/* ==========================================================================
+   Keepit — Trash undo toast
+   إضافات CSS صغيرة خاصة بزر "تراجع" داخل الإشعار العابر. تعتمد كليًا على
+   متغيرات وأصناف main.css الموجودة أصلاً (.toast, .btn...) لضمان تطابق
+   بصري كامل في كلا الوضعين وكلا الاتجاهين.
+   ========================================================================== */
+
+/* .toast-stack تضبط pointer-events: none (لتمرير النقر عبر المساحات
+   الفارغة حولها) — وبما أن pointer-events خاصية تُورَّث، فإن toast العادي
+   النصّي لم يكن بحاجة لإلغائها لأنه لا يحتوي عنصرًا قابلاً للنقر أصلاً.
+   إشعارنا يحتوي زرًا فعليًا، فيجب إعادة تفعيل pointer-events صراحةً وإلا
+   بقي الزر غير قابل للنقر رغم ظهوره بصريًا. */
+.keepit-trash-toast {
+  pointer-events: auto;
+}
+
+.keepit-trash-toast__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+}
+
+.keepit-trash-toast__action {
+  flex-shrink: 0;
+  height: auto;
+  padding: 2px var(--space-2);
+  color: var(--color-primary);
+  font-weight: var(--fw-semibold);
+}
+.keepit-trash-toast__action:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+  color: var(--color-primary);
+}

@@ -10,7 +10,7 @@
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES2022-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](#)
 [![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)](#)
 [![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)](#)
-[![Version](https://img.shields.io/badge/version-1.3.0-6f5bef?style=for-the-badge)](#)
+[![Version](https://img.shields.io/badge/version-1.4.0-6f5bef?style=for-the-badge)](#)
 [![License](https://img.shields.io/badge/license-MIT-22a06b?style=for-the-badge)](#-license)
 
 [![Chrome](https://img.shields.io/badge/Chrome-Supported-4285F4?style=flat-square&logo=googlechrome&logoColor=white)](#-browser-compatibility)
@@ -52,6 +52,16 @@ server, and no one but you ever has access to what you've saved.
 - Every change (add / edit / delete) is saved automatically and continuously to a JSON file inside a folder you choose on your own device.
 - The same file is checked periodically and pulled back in, so if you open the extension from **another browser** on the same machine pointing at the same folder, your data updates there automatically too — no server or account involved.
 - Two safe merge modes: **Merge** (never deletes anything) or **Replace** (also propagates deletions, for anyone who genuinely works from a single browser at a time).
+
+### 🗑️ Trash & instant undo
+- Every collection or site you delete — from anywhere, including a deletion that arrives through local sync's **Replace** mode — is kept in a trash for **30 days** before being permanently removed.
+- A live **"Undo"** toast appears immediately after you delete something, right in the popup or options page you were using.
+- Browse, restore, or permanently delete individual items any time from the trash icon in the options page toolbar. Restoring reuses the same duplicate-detection rules as manual import, so you can never end up with two identical collections or sites by accident.
+
+### 🕰️ Automatic backups (snapshots)
+- Keepit periodically takes a full snapshot of all your collections and sites — protecting you from **edits** (renames, color changes, note changes) too, not just deletions like the trash.
+- Tiered retention keeps recent snapshots, then thins older ones down to one per day, so history stays useful without growing forever.
+- Restore a snapshot with a **safe merge** (adds only what's missing) or a **full replace** (rolls back completely), or just download any snapshot as a JSON file — all from the backups icon in the options page toolbar.
 
 ### 🎨 A comfortable experience
 - Full light and dark mode support, automatically following your OS preference.
@@ -129,14 +139,18 @@ browser support for the File System Access API.
 keepit/
 ├── manifest.json                 # Extension configuration and permissions
 ├── background/
-│   ├── service-worker.js         # Entry point (loads index.js + the sync feature)
+│   ├── service-worker.js         # Entry point (loads index.js + every additive feature)
 │   ├── index.js                  # Core application logic (background)
-│   └── local-sync-sw/            # Sync feature logic inside the service worker
+│   ├── local-sync-sw/            # Sync feature logic inside the service worker
+│   ├── trash-sw/                 # Trash feature logic inside the service worker
+│   └── snapshots-sw/             # Automatic backups logic inside the service worker
 ├── popup/                        # Popup window (quick save)
-├── options/                      # Options page (manage collections + sync panel)
+├── options/                      # Options page (manage collections + sync/trash/backups panels)
 ├── offscreen/                    # Hidden document for file operations
 ├── local-sync/                   # Local sync logic (read/write/merge)
-├── shared/                       # Shared utilities (theme, locale, de-duplication)
+├── trash/                        # Trash logic (store, i18n, live undo toast)
+├── snapshots/                    # Automatic backups logic (store, i18n)
+├── shared/                       # Shared utilities (theme, locale, de-duplication, dialogs, i18n engine)
 └── icons/                        # Extension icons
 ```
 

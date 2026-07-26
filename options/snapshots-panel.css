@@ -1,0 +1,101 @@
+/* ==========================================================================
+   Keepit — Snapshots (backups) panel
+   إضافات CSS صغيرة خاصة بلوحة "النسخ الاحتياطية" فقط. تعتمد كليًا على
+   متغيرات التصميم والأصناف الموجودة أصلاً في main.css — لا إعادة تعريف
+   لأي قيمة لون/تباعد/زوايا.
+   ========================================================================== */
+
+.keepit-snap-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.keepit-snap-intro {
+  font-size: var(--fs-xs);
+  color: var(--color-text-secondary);
+  line-height: var(--lh-normal);
+  margin: 0;
+}
+
+.keepit-snap-take-btn { align-self: flex-start; }
+
+.keepit-snap-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-height: 44vh;
+  overflow-y: auto;
+  padding-inline-end: 2px;
+}
+
+.keepit-snap-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.keepit-snap-row__text { flex: 1; min-width: 0; }
+
+.keepit-snap-row__top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.keepit-snap-badge {
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+  padding: 1px 7px;
+  border-radius: var(--radius-full);
+  letter-spacing: .01em;
+}
+.keepit-snap-badge--auto {
+  background: var(--color-surface-2);
+  color: var(--color-text-tertiary);
+}
+.keepit-snap-badge--manual {
+  background: color-mix(in srgb, var(--color-accent) 16%, transparent);
+  color: var(--color-accent);
+}
+
+.keepit-snap-row__time {
+  font-size: var(--fs-2xs);
+  color: var(--color-text-tertiary);
+}
+
+.keepit-snap-row__summary {
+  font-size: var(--fs-xs);
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.keepit-snap-row__actions {
+  flex-shrink: 0;
+  display: flex;
+  gap: var(--space-1);
+}
+.keepit-snap-row__actions .btn--icon { width: 30px; height: 30px; }
+.keepit-snap-row__actions .btn--icon svg { width: 16px; height: 16px; }
+
+.keepit-snap-note {
+  font-size: var(--fs-2xs);
+  color: var(--color-text-tertiary);
+  line-height: var(--lh-normal);
+  margin: 0;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.keepit-snap-restore-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}

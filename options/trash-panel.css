@@ -1,0 +1,111 @@
+/* ==========================================================================
+   Keepit — Trash panel
+   إضافات CSS صغيرة خاصة بلوحة "سلة المحذوفات" فقط. تعتمد كليًا على متغيرات
+   التصميم والأصناف الموجودة أصلاً في main.css — لا إعادة تعريف لأي قيمة
+   لون/تباعد/زوايا — لضمان تطابق بصري كامل في كلا الوضعين وكلا الاتجاهين.
+   ========================================================================== */
+
+/* شارة عددية فوق زر التفعيل في الشريط (بعكس نقطة المزامنة المحلية، عدد
+   العناصر المحذوفة معلومة مفيدة فعليًا يستحق عرضها كرقم لا كنقطة فقط). */
+.keepit-trash-badge {
+  position: absolute;
+  top: -3px;
+  inset-inline-end: -3px;
+  min-width: 16px;
+  height: 16px;
+  padding-inline: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  background: var(--color-error);
+  color: #fff;
+  font-size: 9px;
+  font-weight: var(--fw-bold);
+  line-height: 1;
+  border: 1.5px solid var(--color-surface);
+}
+.keepit-trash-badge[hidden] { display: none; }
+
+.keepit-trash-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.keepit-trash-intro {
+  font-size: var(--fs-xs);
+  color: var(--color-text-secondary);
+  line-height: var(--lh-normal);
+  margin: 0;
+}
+
+.keepit-trash-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-height: 52vh;
+  overflow-y: auto;
+  padding-inline-end: 2px; /* مساحة لشريط التمرير حتى لا يلامس الأزرار */
+}
+
+.keepit-trash-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.keepit-trash-row__icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+  color: var(--color-text-tertiary);
+  overflow: hidden;
+}
+.keepit-trash-row__icon svg { width: 16px; height: 16px; }
+.keepit-trash-row__icon img { width: 16px; height: 16px; border-radius: 3px; object-fit: contain; }
+
+.keepit-trash-row__text {
+  flex: 1;
+  min-width: 0;
+}
+.keepit-trash-row__name {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.keepit-trash-row__meta {
+  font-size: var(--fs-2xs);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
+}
+
+.keepit-trash-row__actions {
+  flex-shrink: 0;
+  display: flex;
+  gap: var(--space-1);
+}
+.keepit-trash-row__actions .btn--icon { width: 30px; height: 30px; }
+.keepit-trash-row__actions .btn--icon svg { width: 16px; height: 16px; }
+
+.keepit-trash-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}

@@ -15,10 +15,20 @@
     <script src="../shared/dir-switch.js"></script>
     <link rel="stylesheet" href="./main.css" />
     <link rel="stylesheet" href="./local-sync-panel.css" />
+    <link rel="stylesheet" href="./trash-panel.css" />
+    <link rel="stylesheet" href="./snapshots-panel.css" />
+    <link rel="stylesheet" href="../trash/undo-toast.css" />
   </head>
   <body>
     <div id="app"></div>
     <script src="./main.js"></script>
     <script type="module" src="./local-sync-panel.js"></script>
+    <!--
+      سلة المحذوفات والنسخ الاحتياطية: كل منهما يُضيف زرًّا خاصًّا به في
+      شريط أدوات الصفحة (انظر شرح كل ملف على حدة). لا تعديل على main.js.
+    -->
+    <script type="module" src="./trash-panel.js"></script>
+    <script type="module" src="./snapshots-panel.js"></script>
+    <script type="module" src="../trash/undo-toast.js"></script>
   </body>
 </html>

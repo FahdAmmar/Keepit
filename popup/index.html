@@ -13,6 +13,7 @@
     <script src="../shared/dedup.js"></script>
     <script src="../shared/dir-switch.js"></script>
     <link rel="stylesheet" href="./main.css" />
+    <link rel="stylesheet" href="../trash/undo-toast.css" />
   </head>
   <body>
     <div id="app"></div>
@@ -23,5 +24,12 @@
       تلقائيًا فلا تُبطئ رسم main.js إطلاقًا.
     -->
     <script type="module" src="./local-sync-init.js"></script>
+    <!--
+      إشعار "تراجع" فوري عند حذف تصنيف أو موقع من هذه النافذة تحديدًا
+      (انظر شرحه الكامل في الملف نفسه). لا يُضيف أي زر دائم للنافذة
+      المنبثقة — إدارة سلة المحذوفات بالكامل موجودة في صفحة الإعدادات فقط،
+      حفاظًا على مساحة النافذة المنبثقة المحدودة.
+    -->
+    <script type="module" src="../trash/undo-toast.js"></script>
   </body>
 </html>

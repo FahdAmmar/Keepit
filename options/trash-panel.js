@@ -9,7 +9,7 @@
  * كل القراءة/الكتابة الفعلية تمر عبر trash/store.js؛ هذا الملف مسؤول فقط
  * عن الواجهة والتحكم.
  */
-import { waitForElement, openAccessibleDialog, showToast } from "../local-sync/dom-utils.js";
+import { waitForElement, openAccessibleDialog, showToast, rerenderPreservingFocus } from "../local-sync/dom-utils.js";
 import { confirmDestructive } from "../shared/confirm-dialog.js";
 import { formatRelativeTime } from "../shared/format-time.js";
 import { isSafeFaviconUrl } from "../shared/safe-favicon.js";
@@ -62,6 +62,7 @@ function handleStorageChange(changes, areaName) {
     const entries = changes[TRASH_KEY].newValue?.entries;
     currentEntries = Array.isArray(entries) ? entries.slice().sort((a, b) => b.deletedAt - a.deletedAt) : [];
     updateTriggerBadge();
+    updateTriggerAria();
     activeDialogRefresh?.();
   }
   if (KEEPIT_LOCALE_KEY in changes) {
@@ -94,8 +95,11 @@ function mountTriggerButton(container) {
 
 function updateTriggerAria() {
   if (!triggerBtnEl) return;
-  triggerBtnEl.setAttribute("aria-label", t(currentLocale, "triggerLabel"));
-  triggerBtnEl.title = t(currentLocale, "triggerLabel");
+  const count = currentEntries.length;
+  const label =
+    count > 0 ? t(currentLocale, "triggerLabelWithCount", { count }) : t(currentLocale, "triggerLabel");
+  triggerBtnEl.setAttribute("aria-label", label);
+  triggerBtnEl.title = label;
 }
 
 function updateTriggerBadge() {
@@ -125,7 +129,7 @@ function openPanel() {
     },
   });
 
-  activeDialogRefresh = () => renderBody(bodyEl);
+  activeDialogRefresh = () => rerenderPreservingFocus(bodyEl, () => renderBody(bodyEl));
 }
 
 function renderBody(container) {
@@ -154,6 +158,7 @@ function renderBody(container) {
   const emptyBtn = document.createElement("button");
   emptyBtn.type = "button";
   emptyBtn.className = "btn btn--ghost btn--sm btn--danger";
+  emptyBtn.dataset.focusKey = "empty-trash";
   emptyBtn.textContent = t(locale, "emptyTrashAction");
   emptyBtn.addEventListener("click", () => onEmptyTrash());
   actions.append(emptyBtn);
@@ -216,6 +221,7 @@ function buildEntryRow(entry, locale) {
   restoreBtn.type = "button";
   restoreBtn.className = "btn btn--icon";
   restoreBtn.innerHTML = ICON_RESTORE;
+  restoreBtn.dataset.focusKey = `restore-${entry.id}`;
   restoreBtn.setAttribute("aria-label", t(locale, "restoreAction"));
   restoreBtn.title = t(locale, "restoreAction");
   restoreBtn.addEventListener("click", () => onRestore(entry));
@@ -224,6 +230,7 @@ function buildEntryRow(entry, locale) {
   deleteBtn.type = "button";
   deleteBtn.className = "btn btn--icon btn--danger";
   deleteBtn.innerHTML = ICON_DELETE;
+  deleteBtn.dataset.focusKey = `delete-${entry.id}`;
   deleteBtn.setAttribute("aria-label", t(locale, "deleteForeverAction"));
   deleteBtn.title = t(locale, "deleteForeverAction");
   deleteBtn.addEventListener("click", () => onDeleteForever(entry));

@@ -155,6 +155,64 @@ export function openAccessibleDialog({ titleId, titleText, bodyEl, closeLabel, e
 }
 
 /**
+ * يُعيد بناء container عبر renderFn() مع الحفاظ على تركيز لوحة المفاتيح
+ * (keyboard focus) إن أمكن.
+ *
+ * لماذا هذه الأداة ضرورية: كل لوحاتنا (سلة المحذوفات، النسخ الاحتياطية،
+ * المزامنة المحلية) تُعيد بناء محتوى الحوار بالكامل (container.replaceChildren()
+ * ثم إعادة إنشاء كل عنصر من الصفر) بعد أي إجراء — نجاح أو فشل، محليًا أو
+ * قادمًا من chrome.storage.onChanged. بلا هذه الأداة، الزر الذي كان
+ * مُركَّزًا (وغالبًا هو نفس الزر الذي ضغطه المستخدم للتو) يُدمَّر ويُستبدل
+ * بعنصر DOM جديد تمامًا، فيسقط التركيز صامتًا إلى <body>. النتيجة: مستخدم
+ * لوحة المفاتيح أو قارئ الشاشة يُعاد به لأعلى الحوار من جديد بعد **كل**
+ * إجراء بلا استثناء — مشكلة إتاحة نظامية حقيقية (WCAG 2.4.3)، لا حالة
+ * حافة نادرة.
+ *
+ * الآلية: نلتقط "مفتاح تركيز" (data-focus-key، أو id كبديل) للعنصر
+ * المُركَّز حاليًا داخل container قبل renderFn()، ثم نحاول إعادة التركيز
+ * لعنصر بنفس المفتاح بعده. إن لم يعد ذلك العنصر موجودًا (مثلاً صف حُذف
+ * نهائيًا)، ننتقل لأقرب بديل منطقي داخل نفس الحوار بدل ترك التركيز يسقط.
+ *
+ * العناصر التفاعلية التي يجب أن تحمل data-focus-key فريدًا ومستقرًا
+ * (يُشتق من معرّف البيانات الفعلي — id الصف، لا فهرسه في القائمة، حتى لا
+ * يتغيّر المفتاح لمجرد إعادة ترتيب) هي مسؤولية كل لوحة تستدعي هذه الأداة.
+ *
+ * @param {HTMLElement} container
+ * @param {() => void} renderFn - يُنفَّذ container.replaceChildren() ثم إعادة
+ *   بناء المحتوى بداخله (متزامن؛ لا يدعم renderFn غير متزامنة).
+ */
+export function rerenderPreservingFocus(container, renderFn) {
+  const active = document.activeElement;
+  const hadFocus = active instanceof HTMLElement && container.contains(active);
+  const focusKey = hadFocus ? active.dataset.focusKey || active.id || null : null;
+
+  renderFn();
+
+  if (!hadFocus) return;
+
+  if (focusKey) {
+    const next =
+      container.querySelector(`[data-focus-key="${cssEscape(focusKey)}"]`) ||
+      (active.id ? document.getElementById(active.id) : null);
+    if (next instanceof HTMLElement) {
+      next.focus();
+      return;
+    }
+  }
+
+  // العنصر السابق لم يعد موجودًا (مثلاً صف حُذف نهائيًا فعليًا) — ننتقل
+  // لأقرب عنصر قابل للتركيز داخل نفس الحوار بدل ترك التركيز يسقط صامتًا.
+  const dialogEl = container.closest(".dialog");
+  const fallback = (dialogEl || container).querySelector(FOCUSABLE_SELECTOR);
+  if (fallback instanceof HTMLElement) fallback.focus();
+}
+
+function cssEscape(value) {
+  if (typeof CSS !== "undefined" && typeof CSS.escape === "function") return CSS.escape(value);
+  return String(value).replace(/[^a-zA-Z0-9_-]/g, "\\$&"); // بديل بسيط للمتصفحات القديمة جدًا فقط
+}
+
+/**
  * يعرض إشعارًا عابرًا (toast) بنفس أسلوب إشعارات التطبيق الأصلية. يُعيد
  * استخدام حاوية .toast-stack الموجودة أصلاً في الصفحة إن وُجدت (لتفادي
  * تكرار حاوية موازية)، وإلا يُنشئ واحدة مؤقتة.

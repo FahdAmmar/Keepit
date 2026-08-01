@@ -1,0 +1,89 @@
+/* ==========================================================================
+   Keepit — Quick-add collection preview
+   إضافات CSS صغيرة جدًا فقط للأجزاء الجديدة فعلاً؛ كل شيء آخر (.item-row,
+   .item-list, .favicon, .favicon-fallback, .count-badge...) يُعاد استخدامه
+   كما هو من main.css دون أي تكرار — تمامًا كنمط search-enhance.css.
+   ========================================================================== */
+
+.keepit-quick-add-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+/* [hidden] وحدها لا تكفي: أي display صريح على نفس الصنف (كالسطر أعلاه)
+   يتفوّق في الـ cascade على قاعدة المتصفح الافتراضية [hidden]{display:
+   none} لأن أنماط المؤلف (author) تسبق دائمًا أنماط المتصفح (UA) بصرف
+   النظر عن التخصيصية. لهذا نُصرّح هنا صراحةً حتى يعمل panelEl.hidden فعليًا. */
+.keepit-quick-add-preview[hidden] { display: none; }
+
+/* ---------- ترتيب العرض داخل شاشة القائمة الرئيسية ----------
+   تصحيح مهم بعد فحص فعلي لسلوك التطبيق: العنصر الفعلي الذي يبني شاشة
+   القائمة هو <div class="screen screen--list"> (دالة buildListScreen في
+   popup/main.js المضغوطة)، وهو بلا أي تنسيق CSS إطلاقًا حاليًا (لا توجد
+   ولا إشارة واحدة لكلمة screen في main.css) — أي أن أبناءه المباشرين
+   الثلاثة (بطاقة الإضافة السريعة، شريط البحث popup__search، وقسم باقي
+   التصنيفات) يتكدّسون حاليًا بترتيب block عادي بلا flex، فخاصية order لا
+   تعمل عليهم إطلاقًا مهما كتبنا. هذا هو سبب عدم ظهور أي تغيير سابقًا.
+   نُفعّل flex هنا فقط على .screen--list (لا مساس بـ main.css، ولا تأثير
+   على .screen--detail المستقلة تمامًا — لا وجود لشريط بحث فيها أصلاً).
+   بما أن بطاقة الإضافة السريعة ولوحة المعاينة هذه كلتاهما متداخلتان معًا
+   داخل نفس العنصر الوسيط الأول (الناتج عن renderQuickAddSection)، يكفي
+   دفع شريط البحث وحده إلى أول الترتيب البصري؛ الوحدة [بطاقة+معاينة] ثم
+   [باقي التصنيفات] تحافظان على ترتيبهما النسبي الأصلي تلقائيًا (كلاهما
+   بقيمة order الافتراضية 0، فيُحسم التعادل حسب ترتيب DOM الأصلي بينهما،
+   وهو بالفعل: البطاقة (ومعاينتها) قبل قسم باقي التصنيفات). */
+.screen--list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.screen--list > .popup__search { order: -1; }
+
+/* تثبيت شريط البحث أعلى منطقة التمرير (.popup__content هي الحاوية
+   المتمرِّرة الفعلية: overflow-y:auto؛ التموضع اللاصق يُحسَب دائمًا نسبة
+   لأقرب سلف قابل للتمرير بصرف النظر عن عناصر التغليف غير المتمرِّرة
+   بينهما، فلا يتأثر بإضافة .screen--list كطبقة وسيطة). نفس أسلوب الزجاج
+   (glass) المستخدم أصلاً في .popup__header تمامًا لتطابق بصري كامل مع
+   الهوية الحالية للتطبيق، بدل ابتكار نمط جديد. */
+.screen--list > .popup__search {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  border-radius: var(--radius-md);
+  background: var(--glass-bg);
+  backdrop-filter: var(--blur-glass) saturate(1.3);
+  -webkit-backdrop-filter: var(--blur-glass) saturate(1.3);
+  box-shadow: 0 1px 0 var(--glass-highlight);
+}
+
+.keepit-quick-add-preview__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: var(--space-1);
+}
+.keepit-quick-add-preview__heading-title {
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+/* ارتفاع أقصى مع تمرير داخلي بدل توسّع بلا حدود — بعض التصنيفات تحتوي
+   عشرات الروابط (27 في تصنيف Css Generator مثلاً)، ولا فائدة من دفع
+   النافذة المنبثقة بأكملها لأسفل بسبب معاينة واحدة. */
+.keepit-quick-add-preview__list {
+  max-height: 208px;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+.keepit-quick-add-preview__empty-note {
+  font-size: var(--fs-xs);
+  color: var(--color-text-tertiary);
+  padding: var(--space-2) var(--space-1);
+  margin: 0;
+}
+
+.keepit-quick-add-preview__favicon-fallback svg { width: 14px; height: 14px; }

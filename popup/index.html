@@ -14,6 +14,8 @@
     <script src="../shared/dir-switch.js"></script>
     <link rel="stylesheet" href="./main.css" />
     <link rel="stylesheet" href="../trash/undo-toast.css" />
+    <link rel="stylesheet" href="../search-enhance/search-enhance.css" />
+    <link rel="stylesheet" href="../quick-add-preview/quick-add-preview.css" />
   </head>
   <body>
     <div id="app"></div>
@@ -31,5 +33,17 @@
       حفاظًا على مساحة النافذة المنبثقة المحدودة.
     -->
     <script type="module" src="../trash/undo-toast.js"></script>
+    <!--
+      البحث يشمل الآن أسماء التصنيفات أيضًا، لا مواقع محفوظة فقط (راجع
+      الشرح الكامل في search-enhance/mount.js).
+    -->
+    <script type="module" src="../search-enhance/index.js"></script>
+    <!--
+      عند اختيار تصنيف من القائمة المنسدلة في بطاقة الإضافة السريعة، تظهر
+      روابطه المحفوظة أسفلها مباشرة (راجع الشرح الكامل في
+      quick-add-preview/mount.js). لا وجود لهذه البطاقة في صفحة الإعدادات،
+      فالميزة تُحمَّل هنا فقط.
+    -->
+    <script type="module" src="../quick-add-preview/index.js"></script>
   </body>
 </html>

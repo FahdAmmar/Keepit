@@ -10,7 +10,7 @@
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES2022-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](#)
 [![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)](#)
 [![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)](#)
-[![Version](https://img.shields.io/badge/version-1.4.0-6f5bef?style=for-the-badge)](#)
+[![Version](https://img.shields.io/badge/version-1.6.0-6f5bef?style=for-the-badge)](#)
 [![License](https://img.shields.io/badge/license-MIT-22a06b?style=for-the-badge)](#-license)
 
 [![Chrome](https://img.shields.io/badge/Chrome-Supported-4285F4?style=flat-square&logo=googlechrome&logoColor=white)](#-browser-compatibility)
@@ -38,6 +38,7 @@ server, and no one but you ever has access to what you've saved.
 - Color-coded collections (Indigo, Sky, Violet, Emerald, Amber, Rose, Slate) so you can tell categories apart at a glance.
 - Pin important collections to the top.
 - Add text notes to any saved site.
+- Search across everything you've saved — matching **collection names** surfaces the whole collection (with an inline preview of its sites), not just individual sites whose title, URL, or note happens to match.
 
 ### ⚡ Save from anywhere, instantly
 - **One click** from the popup to save the current tab.
@@ -150,6 +151,7 @@ keepit/
 ├── local-sync/                   # Local sync logic (read/write/merge)
 ├── trash/                        # Trash logic (store, i18n, live undo toast)
 ├── snapshots/                    # Automatic backups logic (store, i18n)
+├── search-enhance/               # Search-by-collection-name logic + UI (shared by popup & options)
 ├── shared/                       # Shared utilities (theme, locale, de-duplication, dialogs, i18n engine)
 └── icons/                        # Extension icons
 ```
@@ -170,6 +172,10 @@ Keepit collects no data and sends nothing to any server. Everything
 you save stays in your browser's own `chrome.storage.local`, and the
 optional local-sync feature only ever writes to a folder you choose
 yourself on your own device.
+
+For the full threat model and security posture, see
+[`SECURITY.md`](SECURITY.md). For a record of what changed in each
+release, see [`CHANGELOG.md`](CHANGELOG.md).
 
 ---
 

@@ -9,7 +9,7 @@
  * كل القراءة/الكتابة الفعلية تمر عبر snapshots/store.js؛ هذا الملف مسؤول
  * فقط عن الواجهة والتحكم.
  */
-import { waitForElement, openAccessibleDialog, showToast } from "../local-sync/dom-utils.js";
+import { waitForElement, openAccessibleDialog, showToast, rerenderPreservingFocus } from "../local-sync/dom-utils.js";
 import { confirmDestructive } from "../shared/confirm-dialog.js";
 import { formatRelativeTime, formatAbsoluteDateTime } from "../shared/format-time.js";
 import {
@@ -114,7 +114,7 @@ function openPanel() {
     },
   });
 
-  activeDialogRefresh = () => renderBody(bodyEl);
+  activeDialogRefresh = () => rerenderPreservingFocus(bodyEl, () => renderBody(bodyEl));
 }
 
 function renderBody(container) {
@@ -129,6 +129,7 @@ function renderBody(container) {
   const takeBtn = document.createElement("button");
   takeBtn.type = "button";
   takeBtn.className = "btn btn--secondary btn--sm keepit-snap-take-btn";
+  takeBtn.dataset.focusKey = "take-snapshot";
   takeBtn.textContent = t(locale, "takeSnapshotAction");
   takeBtn.addEventListener("click", () => onTakeSnapshot(takeBtn));
   container.append(takeBtn);
@@ -204,6 +205,7 @@ function buildSnapshotRow(snapshot, locale) {
   restoreBtn.type = "button";
   restoreBtn.className = "btn btn--icon";
   restoreBtn.innerHTML = ICON_RESTORE;
+  restoreBtn.dataset.focusKey = `restore-${snapshot.id}`;
   restoreBtn.setAttribute("aria-label", t(locale, "restoreAction"));
   restoreBtn.title = t(locale, "restoreAction");
   restoreBtn.addEventListener("click", () => openRestoreDialog(snapshot));
@@ -212,6 +214,7 @@ function buildSnapshotRow(snapshot, locale) {
   downloadBtn.type = "button";
   downloadBtn.className = "btn btn--icon";
   downloadBtn.innerHTML = ICON_DOWNLOAD;
+  downloadBtn.dataset.focusKey = `download-${snapshot.id}`;
   downloadBtn.setAttribute("aria-label", t(locale, "downloadAction"));
   downloadBtn.title = t(locale, "downloadAction");
   downloadBtn.addEventListener("click", () => onDownload(snapshot));
@@ -220,6 +223,7 @@ function buildSnapshotRow(snapshot, locale) {
   deleteBtn.type = "button";
   deleteBtn.className = "btn btn--icon btn--danger";
   deleteBtn.innerHTML = ICON_DELETE;
+  deleteBtn.dataset.focusKey = `delete-${snapshot.id}`;
   deleteBtn.setAttribute("aria-label", t(locale, "deleteAction"));
   deleteBtn.title = t(locale, "deleteAction");
   deleteBtn.addEventListener("click", () => onDelete(snapshot));

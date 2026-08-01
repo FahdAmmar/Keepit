@@ -13,7 +13,7 @@
  * كل الكتابة الفعلية على القرص تمر عبر local-sync/writer.js (نفس الدالة
  * المستخدمة من مستند offscreen) — هذا الملف مسؤول فقط عن الواجهة والتحكم.
  */
-import { waitForElement, openAccessibleDialog, showToast } from "../local-sync/dom-utils.js";
+import { waitForElement, openAccessibleDialog, showToast, rerenderPreservingFocus } from "../local-sync/dom-utils.js";
 import { getDirectoryHandle, saveDirectoryHandle } from "../local-sync/handle-store.js";
 import { writeStateToLocalFolder } from "../local-sync/writer.js";
 import { pullFromLocalFolder } from "../local-sync/merge-pull.js";
@@ -182,7 +182,7 @@ function openPanel() {
     },
   });
 
-  activeDialogRefresh = () => renderBody(bodyEl);
+  activeDialogRefresh = () => rerenderPreservingFocus(bodyEl, () => renderBody(bodyEl));
   // متاحة إن احتجنا لاحقًا لإغلاق برمجي؛ غير مستخدمة حاليًا خارج هذا النطاق.
   void close;
 }
@@ -282,6 +282,7 @@ function buildFileNameField(locale) {
   input.type = "text";
   input.id = FILENAME_INPUT_ID;
   input.className = "input";
+  input.dataset.focusKey = "filename-input";
   input.value = currentStatus.fileName || DEFAULT_FILE_NAME;
   input.spellcheck = false;
   input.autocomplete = "off";
@@ -326,6 +327,7 @@ function buildPullSection(locale, bodyContainer) {
   const checkNowBtn = document.createElement("button");
   checkNowBtn.type = "button";
   checkNowBtn.className = "btn btn--secondary";
+  checkNowBtn.dataset.focusKey = "check-now";
   checkNowBtn.textContent = t(locale, "checkNowAction");
   checkNowBtn.disabled = !currentStatus.enabled;
   checkNowBtn.addEventListener("click", () => checkNow(bodyContainer));
@@ -379,6 +381,7 @@ function buildPullModeOption(locale, bodyContainer, { value, titleKey, descKey, 
   input.name = "keepit-ls-pull-mode";
   input.value = value;
   input.checked = isSelected;
+  input.dataset.focusKey = `pull-mode-${value}`;
   input.addEventListener("change", () => onPullModeChange(value, bodyContainer));
 
   const textWrap = document.createElement("span");
@@ -435,6 +438,7 @@ function buildActions(locale, bodyContainer) {
   const chooseBtn = document.createElement("button");
   chooseBtn.type = "button";
   chooseBtn.className = "btn btn--secondary";
+  chooseBtn.dataset.focusKey = "choose-folder";
   chooseBtn.textContent = t(locale, currentStatus.folderName ? "changeFolderAction" : "chooseFolderAction");
   chooseBtn.addEventListener("click", () => onChooseFolder(bodyContainer));
   actions.append(chooseBtn);
@@ -443,6 +447,7 @@ function buildActions(locale, bodyContainer) {
     const reconnectBtn = document.createElement("button");
     reconnectBtn.type = "button";
     reconnectBtn.className = "btn btn--secondary";
+    reconnectBtn.dataset.focusKey = "reconnect";
     reconnectBtn.textContent = t(locale, "reconnectAction");
     reconnectBtn.addEventListener("click", () => onReconnect(bodyContainer));
     actions.append(reconnectBtn);
@@ -452,6 +457,8 @@ function buildActions(locale, bodyContainer) {
     const toggleBtn = document.createElement("button");
     toggleBtn.type = "button";
     toggleBtn.className = "btn btn--ghost";
+    toggleBtn.dataset.focusKey = "toggle-enabled";
+    toggleBtn.setAttribute("aria-pressed", String(currentStatus.enabled));
     toggleBtn.textContent = t(locale, currentStatus.enabled ? "disableAction" : "enableAction");
     toggleBtn.addEventListener("click", () => onToggleEnabled(bodyContainer));
     actions.append(toggleBtn);
@@ -460,6 +467,7 @@ function buildActions(locale, bodyContainer) {
   const syncNowBtn = document.createElement("button");
   syncNowBtn.type = "button";
   syncNowBtn.className = "btn btn--primary";
+  syncNowBtn.dataset.focusKey = "sync-now";
   syncNowBtn.textContent = t(locale, "syncNowAction");
   syncNowBtn.disabled =
     !currentStatus.folderName ||
@@ -491,7 +499,7 @@ async function onChooseFolder(bodyContainer) {
     await persistStatus({ enabled: true, folderName: handle.name, lastError: null });
 
     updateTriggerDot();
-    renderBody(bodyContainer);
+    rerenderPreservingFocus(bodyContainer, () => renderBody(bodyContainer));
     // أول اتصال فعلي بمجلد: نجبر وضع "دمج" دائمًا هنا بغضّ النظر عن الوضع
     // المُختار مستقبلًا — هذا المتصفح قد يحمل بيانات محلية لم تُزامَن مع أي
     // جهة من قبل، فلا نريد أن يمحوها أول اتصال بصمت.
@@ -501,7 +509,7 @@ async function onChooseFolder(bodyContainer) {
     console.error("[Keepit local sync] folder pick failed", err);
     await persistStatus({ lastError: SYNC_ERRORS.INTERNAL_ERROR });
     updateTriggerDot();
-    renderBody(bodyContainer);
+    rerenderPreservingFocus(bodyContainer, () => renderBody(bodyContainer));
   }
 }
 
@@ -541,13 +549,13 @@ async function onReconnect(bodyContainer) {
     const handle = await getDirectoryHandle();
     if (!handle) {
       await persistStatus({ lastError: SYNC_ERRORS.NOT_CONFIGURED });
-      renderBody(bodyContainer);
+      rerenderPreservingFocus(bodyContainer, () => renderBody(bodyContainer));
       return;
     }
     const result = await handle.requestPermission({ mode: "readwrite" });
     if (result === "granted") {
       await persistStatus({ lastError: null });
-      renderBody(bodyContainer);
+      rerenderPreservingFocus(bodyContainer, () => renderBody(bodyContainer));
       // إعادة اتصال، وليس اتصالاً أول — نحترم وضع المستخدم المُختار (عادة
       // "استبدال") ليلتقط أي حذف حصل في متصفحات أخرى أثناء غياب هذا
       // المتصفح، بدل تجاهله كما كان يحدث بفرض "دمج" هنا سابقًا.
@@ -560,14 +568,14 @@ async function onReconnect(bodyContainer) {
     await persistStatus({ lastError: SYNC_ERRORS.INTERNAL_ERROR });
   }
   updateTriggerDot();
-  renderBody(bodyContainer);
+  rerenderPreservingFocus(bodyContainer, () => renderBody(bodyContainer));
 }
 
 async function onToggleEnabled(bodyContainer) {
   const nextEnabled = !currentStatus.enabled;
   await persistStatus({ enabled: nextEnabled });
   updateTriggerDot();
-  renderBody(bodyContainer);
+  rerenderPreservingFocus(bodyContainer, () => renderBody(bodyContainer));
   if (nextEnabled) await syncNow(bodyContainer);
 }
 
@@ -585,7 +593,7 @@ async function onSyncNowClick(bodyContainer) {
 
 async function onPullModeChange(mode, bodyContainer) {
   await persistStatus({ pullMode: mode });
-  renderBody(bodyContainer);
+  rerenderPreservingFocus(bodyContainer, () => renderBody(bodyContainer));
 }
 
 /**
@@ -621,7 +629,7 @@ async function checkNow(bodyContainer) {
   }
 
   updateTriggerDot();
-  if (bodyContainer) renderBody(bodyContainer);
+  if (bodyContainer) rerenderPreservingFocus(bodyContainer, () => renderBody(bodyContainer));
   return result;
 }
 
@@ -642,7 +650,7 @@ async function syncNow(bodyContainer) {
   }
 
   updateTriggerDot();
-  if (bodyContainer) renderBody(bodyContainer);
+  if (bodyContainer) rerenderPreservingFocus(bodyContainer, () => renderBody(bodyContainer));
   return result;
 }
 

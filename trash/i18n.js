@@ -10,6 +10,7 @@ import { createTranslator } from "../shared/i18n-engine.js";
 const STRINGS = {
   ar: {
     triggerLabel: "سلة المحذوفات",
+    triggerLabelWithCount: "سلة المحذوفات، {count} عنصر",
     panelTitle: "سلة المحذوفات",
     panelIntro: "كل تصنيف أو موقع تحذفه يبقى هنا مؤقتًا ({days} يومًا) قبل حذفه نهائيًا — يشمل ذلك أيضًا أي حذف وصل عبر المزامنة المحلية في وضع الاستبدال.",
     emptyTitle: "السلة فارغة",
@@ -41,6 +42,7 @@ const STRINGS = {
   },
   en: {
     triggerLabel: "Trash",
+    triggerLabelWithCount: "Trash, {count} items",
     panelTitle: "Trash",
     panelIntro: "Every collection or site you delete stays here temporarily ({days} days) before being permanently removed — this also covers anything removed via local sync in replace mode.",
     emptyTitle: "Trash is empty",

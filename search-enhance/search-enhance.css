@@ -1,0 +1,45 @@
+/* ==========================================================================
+   Keepit — Search enhance (matching collections)
+   إضافات CSS صغيرة جدًا فقط للأجزاء الجديدة فعلاً؛ كل شيء آخر
+   (.collection-row, .item-row, .favicon, .count-badge, .item-list...)
+   يُعاد استخدامه كما هو من main.css في كلا الصفحتين دون أي تكرار.
+   ========================================================================== */
+
+.keepit-search-enhance {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-block: var(--space-3);
+}
+
+.keepit-search-enhance__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: var(--space-1);
+}
+.keepit-search-enhance__heading-title {
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+/* السهم يدور 180° عند التوسيع بدل الانتقال بين أيقونتين — أبسط وأنعم. */
+.keepit-search-enhance__chevron svg { width: 16px; height: 16px; transition: transform var(--transition-base); }
+.keepit-search-enhance__chevron.is-expanded svg { transform: rotate(180deg); }
+
+.keepit-search-enhance__items {
+  padding-inline-start: var(--space-5);
+  padding-block: 2px var(--space-1);
+}
+
+.keepit-search-enhance__empty-note {
+  font-size: var(--fs-xs);
+  color: var(--color-text-tertiary);
+  padding: var(--space-2) var(--space-1);
+  margin: 0;
+}
+
+.keepit-search-enhance__favicon-fallback svg { width: 14px; height: 14px; }

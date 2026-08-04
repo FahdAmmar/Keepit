@@ -28,6 +28,11 @@ import { buildExportPayload } from "./export-schema.js";
 import { exportCollectionsEqual } from "./compare.js";
 import { KEEPIT_STATE_KEY, PULL_MODE, SYNC_ERRORS } from "./constants.js";
 
+/** أقصى عدد محاولات عند اكتشاف تغيّر متزامن في الحالة أثناء الحساب (راجع
+ *  الشرح المطوَّل داخل pullFromLocalFolder) — رقم سخي مقابل عملية رخيصة
+ *  جدًا (قراءة محلية + دمج في الذاكرة)، فلا كلفة حقيقية للسخاء هنا. */
+const MAX_WRITE_ATTEMPTS = 5;
+
 /**
  * @param {{ fileName?: string, mode?: string }} params
  * @returns {Promise<
@@ -48,46 +53,88 @@ export async function pullFromLocalFolder({ fileName, mode }) {
     return { ok: false, error: SYNC_ERRORS.INTERNAL_ERROR };
   }
 
-  const localState = await getLocalState();
-  const localExportCollections = buildExportPayload(localState).collections;
-
-  // فحص سريع ورخيص: إن كان محتوى الملف مطابقًا تمامًا لما لدينا محليًا (سواء
-  // لأننا نحن من كتبه، أو لأن متصفحًا آخر توافق مسبقًا)، لا داعي لأي عمل
-  // إضافي (لا توليد معرّفات جديدة، لا كتابة إلى chrome.storage).
-  if (exportCollectionsEqual(readResult.collections, localExportCollections)) {
-    return { ok: true, changed: false };
-  }
-
   const useReplace = mode === PULL_MODE.REPLACE;
   const { collections: importedInternal } = toInternalCollections(readResult.collections);
 
-  const mergeResult = globalThis.KeepitDedup.mergeCollections(
-    useReplace ? [] : (localState.collections ?? []),
-    importedInternal,
-  );
+  // ## لماذا حلقة محاولات، لا قراءة واحدة ثم كتابة مباشرة كما كان سابقًا
+  //
+  // هذه الدالة تعمل تلقائيًا كل دقيقتين بلا أي تدخل من المستخدم (راجع
+  // background/local-sync-sw/controller.js#runPull)، بالتوازي التام مع أي
+  // كتابة أخرى قد تحصل من سياق مختلف تمامًا (popup أو options) في نفس
+  // اللحظة — إضافة موقع، حذف تصنيف، استعادة من السلة... إلخ. كل هذه
+  // السياقات مستقلة تمامًا، ولا توجد "معاملة ذرّية" (transaction) في
+  // chrome.storage.local تمنع تداخلها.
+  //
+  // النمط القديم (قراءة الحالة مرة واحدة، حساب الدمج، ثم الكتابة) كان
+  // عرضة لسباق حقيقي: لو وصلت كتابة من سياق آخر بعد قراءتنا وقبل كتابتنا،
+  // كانت كتابتنا (المبنية على حالة قديمة لا تعرف بتلك الكتابة) تستبدلها
+  // بالكامل — فتُفقَد تلك الإضافة/التعديل صامتًا. والأسوأ: فحص سلة
+  // المحذوفات (الذي يقارن كل قيمة قديمة/جديدة لـ keepit:state) كان يرى
+  // ذلك الفقدان كـ"حذف تصنيف/موقع" حقيقي ويُسجّله في السلة، رغم أن
+  // المستخدم لم يحذف شيئًا إطلاقًا — وهذا بالضبط العرض الذي كان يظهر
+  // كـ"مجلدات محذوفة في السلة بلا حذف فعلي".
+  //
+  // الحل هنا تحقّق تفاؤلي (optimistic concurrency) بلا حاجة لإضافة رقم
+  // إصدار للمخطط: نقرأ الحالة، نحسب الدمج، ثم *قبل الكتابة مباشرة* نعيد
+  // القراءة؛ إن تطابقت مع ما استخدمناه للحساب (لا كتابة متزامنة حصلت)
+  // نكتب بأمان. إن اختلفت، نعيد الحساب بأكمله من الحالة الجديدة بدل
+  // الكتابة فوق تلك الكتابة المتزامنة.
+  for (let attempt = 0; attempt < MAX_WRITE_ATTEMPTS; attempt++) {
+    const localState = await getLocalState();
+    const localExportCollections = buildExportPayload(localState).collections;
 
-  // فحص أمان أخير: قد يُنتج الدمج نفس المحتوى الحالي فعليًا (مثلًا كان كل ما
-  // في الملف موجودًا محليًا أصلًا تحت ترتيب/تنسيق مختلف قليلًا). لا نكتب في
-  // هذه الحالة لتفادي دورة كتابة/سحب لا طائل منها.
-  const mergedExportShape = buildExportPayload({ collections: mergeResult.merged }).collections;
-  if (exportCollectionsEqual(mergedExportShape, localExportCollections)) {
-    return { ok: true, changed: false };
+    // فحص سريع ورخيص: إن كان محتوى الملف مطابقًا تمامًا لما لدينا محليًا
+    // (سواء لأننا نحن من كتبه، أو لأن متصفحًا آخر توافق مسبقًا)، لا داعي
+    // لأي عمل إضافي (لا توليد معرّفات جديدة، لا كتابة إلى chrome.storage).
+    if (exportCollectionsEqual(readResult.collections, localExportCollections)) {
+      return { ok: true, changed: false };
+    }
+
+    const mergeResult = globalThis.KeepitDedup.mergeCollections(
+      useReplace ? [] : (localState.collections ?? []),
+      importedInternal,
+    );
+
+    // فحص أمان: قد يُنتج الدمج نفس المحتوى الحالي فعليًا (مثلًا كان كل ما
+    // في الملف موجودًا محليًا أصلًا تحت ترتيب/تنسيق مختلف قليلًا). لا نكتب
+    // في هذه الحالة لتفادي دورة كتابة/سحب لا طائل منها.
+    const mergedExportShape = buildExportPayload({ collections: mergeResult.merged }).collections;
+    if (exportCollectionsEqual(mergedExportShape, localExportCollections)) {
+      return { ok: true, changed: false };
+    }
+
+    const newState = {
+      schemaVersion: localState.schemaVersion ?? 1,
+      collections: mergeResult.merged,
+      lastUsedCollectionId: useReplace
+        ? (mergeResult.merged[0]?.id ?? null)
+        : (localState.lastUsedCollectionId ?? mergeResult.merged[0]?.id ?? null),
+    };
+
+    // التحقق التفاؤلي: أعد القراءة الآن، مباشرة قبل الكتابة (بلا أي await
+    // آخر بينهما وبين setLocalState أسفل هذا الشرط)، لتضييق نافذة السباق
+    // لأقصى حد عملي ممكن بلا دعم معاملات حقيقي من المنصة.
+    const freshState = await getLocalState();
+    const freshExportShape = buildExportPayload(freshState).collections;
+    if (!exportCollectionsEqual(freshExportShape, localExportCollections)) {
+      continue; // تغيّرت الحالة أثناء حسابنا — أعد المحاولة كاملة من الحالة الجديدة
+    }
+
+    await setLocalState(newState);
+
+    const addedCollections = countNewCollections(localExportCollections, mergedExportShape);
+    const addedItems = countNewItems(localState.collections ?? [], mergeResult.merged);
+
+    return { ok: true, changed: true, addedCollections, addedItems };
   }
 
-  const newState = {
-    schemaVersion: localState.schemaVersion ?? 1,
-    collections: mergeResult.merged,
-    lastUsedCollectionId: useReplace
-      ? (mergeResult.merged[0]?.id ?? null)
-      : (localState.lastUsedCollectionId ?? mergeResult.merged[0]?.id ?? null),
-  };
-
-  await setLocalState(newState);
-
-  const addedCollections = countNewCollections(localExportCollections, mergedExportShape);
-  const addedItems = countNewItems(localState.collections ?? [], mergeResult.merged);
-
-  return { ok: true, changed: true, addedCollections, addedItems };
+  // استُنفدت كل المحاولات — تزامن كثيف جدًا وغير متوقَّع عمليًا (يتطلّب
+  // كتابات متلاحقة على keepit:state كل جزء من الثانية باستمرار). لا نكتب
+  // شيئًا بدل المخاطرة بفقدان بيانات؛ ليست حالة خطأ فعلية تستحق إزعاج
+  // المستخدم — الدورة الدورية التالية (خلال دقيقتين) ستنجح بمجرد هدوء
+  // الكتابات المتزامنة.
+  console.warn("[Keepit local sync] pull skipped after repeated concurrent writes; will retry next cycle");
+  return { ok: true, changed: false };
 }
 
 async function getLocalState() {

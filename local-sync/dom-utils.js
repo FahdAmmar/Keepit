@@ -45,6 +45,35 @@ export function waitForElement(selector, { root = document, timeoutMs = 15000 } 
   });
 }
 
+/**
+ * يُعيد إلحاق عنصر (عادة زر تفعيل لوحة) بأول عنصر يطابق selector إن كان
+ * قد انفصل عن المستند. صفحة الخيارات تُعيد بناء شريط الأدوات (main.js،
+ * الحزمة الأصلية) عند تبديل اللغة (عربي/إنجليزي) — إعادة بناء تُنشئ عنصر
+ * DOM **جديدًا بالكامل** بنفس الصنف .options__topbar-actions، لا تُعدّل
+ * العنصر القديم في مكانه. أي زر أُلحق يدويًا بالعنصر القديم (كأزرار سلة
+ * المحذوفات والنسخ الاحتياطي والمزامنة المحلية وجسر الإشارات المرجعية)
+ * يبقى موجودًا في الذاكرة لكن يصبح غير متصل بالمستند (والده القديم لم
+ * يعد جزءًا من الصفحة)، فيختفي بصريًا بصمت.
+ *
+ * عمدًا **بلا** مراقب DOM دائم: تكلفة أداء غير مبرَّرة لحدث نادر كتبديل
+ * اللغة. الاستدعاء الصحيح هو من داخل معالج chrome.storage.onChanged
+ * لـ keepit:locale الموجود أصلاً في كل لوحة لسبب آخر (تحديث نصوصها
+ * المترجمة) — فلا تكلفة إضافية تُذكر، ونفس اللحظة بالضبط التي يُعاد فيها
+ * بناء شريط الأدوات.
+ *
+ * @param {string} selector
+ * @param {HTMLElement} el - نفس مرجع العنصر دائمًا؛ لا يُعاد بناؤه هنا، فقط
+ *   يُعاد إلحاقه، فتبقى كل مستمعات الأحداث المُسجَّلة عليه سليمة.
+ * @param {(container: Element, el: HTMLElement) => void} [insert] - استراتيجية
+ *   الإلحاق (افتراضيًا append)؛ مرِّر (c, el) => c.prepend(el) للوحات التي
+ *   تعتمد ترتيبًا محددًا لزرها ضمن الشريط.
+ */
+export async function reattachIfDetached(selector, el, insert = (container, element) => container.append(element)) {
+  if (el.isConnected) return;
+  const container = await waitForElement(selector);
+  if (container && !container.contains(el)) insert(container, el);
+}
+
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
@@ -207,7 +236,7 @@ export function rerenderPreservingFocus(container, renderFn) {
   if (fallback instanceof HTMLElement) fallback.focus();
 }
 
-function cssEscape(value) {
+export function cssEscape(value) {
   if (typeof CSS !== "undefined" && typeof CSS.escape === "function") return CSS.escape(value);
   return String(value).replace(/[^a-zA-Z0-9_-]/g, "\\$&"); // بديل بسيط للمتصفحات القديمة جدًا فقط
 }

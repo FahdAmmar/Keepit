@@ -13,7 +13,7 @@
  * كل الكتابة الفعلية على القرص تمر عبر local-sync/writer.js (نفس الدالة
  * المستخدمة من مستند offscreen) — هذا الملف مسؤول فقط عن الواجهة والتحكم.
  */
-import { waitForElement, openAccessibleDialog, showToast, rerenderPreservingFocus } from "../local-sync/dom-utils.js";
+import { waitForElement, openAccessibleDialog, showToast, rerenderPreservingFocus, reattachIfDetached } from "../local-sync/dom-utils.js";
 import { getDirectoryHandle, saveDirectoryHandle } from "../local-sync/handle-store.js";
 import { writeStateToLocalFolder } from "../local-sync/writer.js";
 import { pullFromLocalFolder } from "../local-sync/merge-pull.js";
@@ -114,6 +114,7 @@ function handleStorageChange(changes, areaName) {
     currentLocale = resolveLocale(changes[KEEPIT_LOCALE_KEY].newValue);
     updateTriggerAria();
     activeDialogRefresh?.();
+    if (triggerBtnEl) void reattachIfDetached(".options__topbar-actions", triggerBtnEl, (c, el) => c.prepend(el));
   }
 }
 

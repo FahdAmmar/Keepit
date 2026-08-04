@@ -1,0 +1,173 @@
+/* ==========================================================================
+   Keepit — Item Manager panel (تحديد متعدد + سحب-وإفلات)
+   إضافات CSS صغيرة خاصة بهذه اللوحة فقط. تعتمد كليًا على متغيرات التصميم
+   والأصناف الموجودة أصلاً في main.css (بما فيها .favicon و.count-badge
+   المُعاد استخدامها هنا حرفيًا) — لا إعادة تعريف لأي قيمة لون/تباعد.
+   ========================================================================== */
+
+.keepit-im-dialog {
+  max-width: 560px;
+}
+
+.keepit-im-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.keepit-im-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.keepit-im-field__label {
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-medium);
+  color: var(--color-text-secondary);
+}
+
+.keepit-im-empty-note {
+  font-size: var(--fs-xs);
+  color: var(--color-text-tertiary);
+  line-height: var(--lh-normal);
+  margin: 0;
+}
+
+/* ------------------------------------------------------------------------
+   شريط التحديد والإجراءات الجماعية
+   ------------------------------------------------------------------------ */
+
+.keepit-im-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding-block: var(--space-2);
+  border-block: 1px solid var(--color-border);
+}
+
+.keepit-im-select-all {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.keepit-im-target-select {
+  max-width: 160px;
+  height: 32px;
+  font-size: var(--fs-xs);
+}
+
+/* aria-disabled عمدًا لا disabled الفعلية أثناء تنفيذ إجراء جماعي — راجع
+   تعليق withBusyButton في item-manager-panel.js: تعطيل عنصر مُركَّز عليه
+   فعليًا يُفقده التركيز فورًا فتنكسر rerenderPreservingFocus. */
+.keepit-im-toolbar .btn[aria-disabled="true"] {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------------------
+   قائمة العناصر
+   ------------------------------------------------------------------------ */
+
+.keepit-im-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.keepit-im-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  transition: background-color 0.12s ease;
+}
+
+.keepit-im-row:hover {
+  background: var(--color-surface-2);
+}
+
+/* أثناء السحب: العنصر المسحوب نفسه شبه شفاف؛ الصف المُستهدَف تحته (drop
+   target) يحصل حد علوي واضح كمؤشر مكان الإفلات. */
+.keepit-im-row.is-dragging {
+  opacity: 0.4;
+}
+.keepit-im-row.is-drag-over {
+  box-shadow: inset 0 2px 0 0 var(--color-primary);
+}
+
+.keepit-im-row__grip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 26px;
+  flex-shrink: 0;
+  color: var(--color-text-tertiary);
+  cursor: grab;
+}
+.keepit-im-row__grip svg {
+  width: 14px;
+  height: 14px;
+}
+
+.keepit-im-row__checkbox {
+  flex-shrink: 0;
+}
+
+.keepit-im-row__link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
+}
+
+.keepit-im-row__body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 1px;
+}
+
+.keepit-im-row__title {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.keepit-im-row__host {
+  font-size: var(--fs-2xs);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.keepit-im-row__move-buttons {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.keepit-im-row__move-buttons .btn {
+  width: 26px;
+  height: 26px;
+}
+.keepit-im-row__move-buttons .btn svg {
+  width: 14px;
+  height: 14px;
+}

@@ -1,21 +1,26 @@
 /**
  * search-enhance/store.js
  * ---------------------------------------------------------------------------
- * منطق مطابقة أسماء التصنيفات فقط — القراءة ببساطة عند كل استدعاء بدل طبقة
- * تخزين مؤقت (cache) منفصلة: قراءة chrome.storage.local محليًا سريعة جدًا
- * (أقل من مللي ثانية عمليًا)، فلا مبرر لتعقيد إضافي هنا (KISS).
+ * منطق مطابقة البحث — يشمل اسم التصنيف **وعنوان/رابط كل موقع بداخله**.
+ * القراءة ببساطة عند كل استدعاء بدل طبقة تخزين مؤقت (cache) منفصلة: قراءة
+ * chrome.storage.local محليًا سريعة جدًا (أقل من مللي ثانية عمليًا)، فلا
+ * مبرر لتعقيد إضافي هنا (KISS).
  *
- * نفس منطق التطبيع المستخدم أصلاً في دالة البحث عن المواقع داخل
- * popup/main.js وoptions/main.js (المضغوطتين): `toLowerCase().includes()`
- * بلا أي معالجة إملائية أو لغوية إضافية، حفاظًا على سلوك بحث متسق ومتوقَّع
- * في كل أنحاء التطبيق.
+ * نفس منطق المطابقة البسيط في كل أنحاء التطبيق: `toLowerCase().includes()`
+ * بلا أي معالجة إملائية أو لغوية إضافية، حفاظًا على سلوك بحث متسق ومتوقَّع.
+ *
+ * كل تصنيف يظهر في النتائج لسبب واحد على الأقل:
+ *   - اسمه نفسه يطابق نص البحث (matchInName)، أو
+ *   - أحد مواقعه يطابق (matchedItems غير فارغة) — بعنوانه أو رابطه.
+ * الفرز: اسم يبدأ بالنص أولًا، ثم اسم يحتويه فقط، ثم تطابق عبر المواقع
+ * فقط، وأبجديًا داخل كل مستوى.
  */
-import { KEEPIT_STATE_KEY, KEEPIT_LOCALE_KEY, MAX_MATCHES } from "./constants.js";
+import { KEEPIT_STATE_KEY, KEEPIT_LOCALE_KEY, MAX_MATCHES, MAX_MATCHED_ITEMS_PER_COLLECTION } from "./constants.js";
 
 /**
  * @param {string} query
- * @returns {Promise<Array<any>>} التصنيفات المطابقة، الأقرب أولًا (اسم يبدأ
- *   بنص البحث يُرتَّب قبل اسم يحتوي عليه فقط في مكان آخر)
+ * @returns {Promise<Array<any>>} التصنيفات المطابقة (بحقلين إضافيين:
+ *   matchedItems وmatchedItemsTotal)، الأقرب أولًا.
  */
 export async function searchMatchingCollections(query) {
   const needle = query.trim().toLowerCase();
@@ -24,14 +29,40 @@ export async function searchMatchingCollections(query) {
   const data = await chrome.storage.local.get(KEEPIT_STATE_KEY);
   const collections = Array.isArray(data[KEEPIT_STATE_KEY]?.collections) ? data[KEEPIT_STATE_KEY].collections : [];
 
-  return collections
-    .filter((c) => typeof c?.name === "string" && c.name.toLowerCase().includes(needle))
+  const results = [];
+  for (const c of collections) {
+    if (!c || typeof c.name !== "string") continue;
+
+    const nameMatches = c.name.toLowerCase().includes(needle);
+    const items = Array.isArray(c.items) ? c.items : [];
+    const allMatchedItems = items.filter((it) => itemMatches(it, needle));
+
+    if (!nameMatches && allMatchedItems.length === 0) continue; // لا تطابق بأي شكل؛ استبعد التصنيف كليًا
+
+    results.push({
+      ...c,
+      nameMatches,
+      matchedItems: allMatchedItems.slice(0, MAX_MATCHED_ITEMS_PER_COLLECTION),
+      matchedItemsTotal: allMatchedItems.length,
+    });
+  }
+
+  return results
     .sort((a, b) => {
-      const aStarts = a.name.toLowerCase().startsWith(needle) ? 0 : 1;
-      const bStarts = b.name.toLowerCase().startsWith(needle) ? 0 : 1;
-      return aStarts !== bStarts ? aStarts - bStarts : a.name.localeCompare(b.name);
+      const rank = (c) => (c.nameMatches ? (c.name.toLowerCase().startsWith(needle) ? 0 : 1) : 2);
+      const ra = rank(a);
+      const rb = rank(b);
+      return ra !== rb ? ra - rb : a.name.localeCompare(b.name);
     })
     .slice(0, MAX_MATCHES);
+}
+
+/** @param {any} item @param {string} needle (مُطبَّع مسبقًا: trim + toLowerCase) */
+function itemMatches(item, needle) {
+  if (!item) return false;
+  const title = typeof item.title === "string" ? item.title.toLowerCase() : "";
+  const url = typeof item.url === "string" ? item.url.toLowerCase() : "";
+  return title.includes(needle) || url.includes(needle);
 }
 
 /** @returns {Promise<string | undefined>} */

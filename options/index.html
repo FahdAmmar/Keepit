@@ -17,6 +17,8 @@
     <link rel="stylesheet" href="./local-sync-panel.css" />
     <link rel="stylesheet" href="./trash-panel.css" />
     <link rel="stylesheet" href="./snapshots-panel.css" />
+    <link rel="stylesheet" href="./bookmarks-panel.css" />
+    <link rel="stylesheet" href="./item-manager-panel.css" />
     <link rel="stylesheet" href="../trash/undo-toast.css" />
     <link rel="stylesheet" href="../search-enhance/search-enhance.css" />
   </head>
@@ -30,10 +32,12 @@
     -->
     <script type="module" src="./trash-panel.js"></script>
     <script type="module" src="./snapshots-panel.js"></script>
+    <script type="module" src="./bookmarks-panel.js"></script>
+    <script type="module" src="./item-manager-panel.js"></script>
     <script type="module" src="../trash/undo-toast.js"></script>
     <!--
-      البحث يشمل الآن أسماء التصنيفات أيضًا، لا مواقع محفوظة فقط (نفس
-      الوحدة بالضبط المستخدمة في النافذة المنبثقة — راجع search-enhance/mount.js).
+      البحث يشمل أسماء التصنيفات ومواقعها المحفوظة معًا (نفس الوحدة بالضبط
+      المستخدمة في النافذة المنبثقة — راجع search-enhance/mount.js وstore.js).
     -->
     <script type="module" src="../search-enhance/index.js"></script>
   </body>

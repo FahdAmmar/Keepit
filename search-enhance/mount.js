@@ -34,9 +34,13 @@ const ICON_CHEVRON =
 let currentInputEl = null;
 /** @type {HTMLDivElement | null} */
 let currentPanelEl = null;
-/** مجموعة أسماء التصنيفات الموسَّعة حاليًا (بمعرّفها) — تبقى مفتوحة عبر
+/** مجموعة أسماء التصنيفات الموسَّعة يدويًا (بمعرّفها) — تبقى مفتوحة عبر
  *  إعادة الرسم أثناء الكتابة المتتالية، فلا تُغلَق كل حرف جديد يكتبه المستخدم. */
 const expandedIds = new Set();
+/** مجموعة التصنيفات المطويّة يدويًا صراحة — تتجاوز التوسيع التلقائي عند
+ *  تطابق موقع (راجع isExpanded). بدونها، طيّ تصنيف وُسِّع تلقائيًا لا يعمل:
+ *  حذفه من expandedIds لا أثر له لأنه أصلاً لم يكن بداخلها. */
+const collapsedIds = new Set();
 /** آخر نتائج معروفة، لإعادة الرسم الفوري عند تبديل التوسيع بلا قراءة جديدة
  *  من chrome.storage في كل نقرة. تُحدَّث فقط داخل updateResults(). */
 let lastRenderedMatches = [];
@@ -126,6 +130,9 @@ function render(panelEl, matches) {
   for (const id of Array.from(expandedIds)) {
     if (!validIds.has(id)) expandedIds.delete(id); // تنظيف تصنيفات لم تعد ضمن النتائج الحالية
   }
+  for (const id of Array.from(collapsedIds)) {
+    if (!validIds.has(id)) collapsedIds.delete(id);
+  }
 
   const heading = document.createElement("div");
   heading.className = "keepit-search-enhance__heading";
@@ -148,8 +155,22 @@ function render(panelEl, matches) {
   panelEl.replaceChildren(heading, list);
 }
 
+/**
+ * حالة التوسيع الفعلية لتصنيف: الطيّ اليدوي الصريح يتجاوز كل شيء (يحترم
+ * قرار المستخدم حتى لو كان التصنيف سيُوسَّع تلقائيًا أصلاً)، ثم التوسيع
+ * اليدوي الصريح، ثم التوسيع التلقائي الافتراضي عند وجود مواقع مطابقة.
+ * @param {any} collection
+ * @param {Array<any>} matchedItems
+ */
+function isExpanded(collection, matchedItems) {
+  if (collapsedIds.has(collection.id)) return false;
+  if (expandedIds.has(collection.id)) return true;
+  return matchedItems.length > 0;
+}
+
 function buildCollectionRow(collection, locale) {
-  const expanded = expandedIds.has(collection.id);
+  const matchedItems = Array.isArray(collection.matchedItems) ? collection.matchedItems : [];
+  const expanded = isExpanded(collection, matchedItems);
 
   const wrap = document.createElement("div");
   wrap.className = "collection-row keepit-search-enhance__row";
@@ -183,8 +204,13 @@ function buildCollectionRow(collection, locale) {
 
   mainBtn.append(dot, nameEl, countEl, chevron);
   mainBtn.addEventListener("click", () => {
-    if (expandedIds.has(collection.id)) expandedIds.delete(collection.id);
-    else expandedIds.add(collection.id);
+    if (expanded) {
+      expandedIds.delete(collection.id);
+      collapsedIds.add(collection.id);
+    } else {
+      collapsedIds.delete(collection.id);
+      expandedIds.add(collection.id);
+    }
     // إعادة رسم فورية بدل انتظار "input" جديد — نعتمد على آخر نتائج معروفة
     // بدل استدعاء الشبكة/التخزين مجددًا لمجرد تبديل التوسيع. نحافظ على
     // تركيز زر التوسيع نفسه (rerenderPreservingFocus) بدل أن يفقده مستخدم
@@ -196,7 +222,10 @@ function buildCollectionRow(collection, locale) {
   wrap.append(mainBtn);
 
   if (expanded) {
-    const items = Array.isArray(collection.items) ? collection.items : [];
+    // إن طابق البحث مواقع محددة، اعرضها هي فقط (نتيجة بحث دقيقة، لا إغراق
+    // بكل محتوى التصنيف)؛ غير ذلك (تطابق بالاسم فقط) اعرض كل المواقع كما
+    // كان الحال قبل هذه التوسعة تمامًا — لا تغيير في ذلك المسار.
+    const items = matchedItems.length > 0 ? matchedItems : Array.isArray(collection.items) ? collection.items : [];
     const itemsWrap = document.createElement("div");
     itemsWrap.className = "item-list keepit-search-enhance__items";
 
@@ -208,6 +237,13 @@ function buildCollectionRow(collection, locale) {
     } else {
       for (const item of items) {
         itemsWrap.append(buildItemRow(item, ITEM_ROW_CLASSES));
+      }
+      const remaining = (collection.matchedItemsTotal ?? 0) - matchedItems.length;
+      if (matchedItems.length > 0 && remaining > 0) {
+        const moreNote = document.createElement("p");
+        moreNote.className = "keepit-search-enhance__empty-note";
+        moreNote.textContent = t(locale, "moreMatchesNote", { count: remaining });
+        itemsWrap.append(moreNote);
       }
     }
 

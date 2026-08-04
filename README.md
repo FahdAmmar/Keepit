@@ -10,7 +10,7 @@
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES2022-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](#)
 [![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)](#)
 [![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)](#)
-[![Version](https://img.shields.io/badge/version-1.6.0-6f5bef?style=for-the-badge)](#)
+[![Version](https://img.shields.io/badge/version-1.9.0-6f5bef?style=for-the-badge)](#)
 [![License](https://img.shields.io/badge/license-MIT-22a06b?style=for-the-badge)](#-license)
 
 [![Chrome](https://img.shields.io/badge/Chrome-Supported-4285F4?style=flat-square&logo=googlechrome&logoColor=white)](#-browser-compatibility)
@@ -49,6 +49,11 @@ server, and no one but you ever has access to what you've saved.
 - Export all your collections to a single JSON file whenever you want.
 - Import a JSON file in two modes: **merge** with what you already have, or a full **replace**.
 
+### 🔖 Chrome bookmarks bridge
+- **Import** any folder straight from your browser's native bookmarks — sub-folders become their own collections automatically. Always a safe merge, never a replace.
+- **Export** any collection back into a `Keepit` folder in your bookmarks bar. Re-exporting the same collection never creates duplicate bookmarks.
+- Import or export a standard **Netscape Bookmark File** (`.html`) — the universal format every major browser (Firefox, Safari, Edge...) can read and write, for moving your data anywhere.
+
 ### 🔄 Two-way local file sync (no cloud required)
 - Every change (add / edit / delete) is saved automatically and continuously to a JSON file inside a folder you choose on your own device.
 - The same file is checked periodically and pulled back in, so if you open the extension from **another browser** on the same machine pointing at the same folder, your data updates there automatically too — no server or account involved.
@@ -73,6 +78,7 @@ server, and no one but you ever has access to what you've saved.
 - No permission to access websites (`host_permissions` is empty).
 - All data lives in `chrome.storage.local` on your device only.
 - The local-sync folder handle is stored in the extension's own IndexedDB — never uploaded to any account.
+- The `bookmarks` permission (used by the Chrome bookmarks bridge) only ever reads or writes your browser's own bookmarks tree, on explicit click — never accessed automatically in the background.
 
 ---
 
@@ -151,7 +157,9 @@ keepit/
 ├── local-sync/                   # Local sync logic (read/write/merge)
 ├── trash/                        # Trash logic (store, i18n, live undo toast)
 ├── snapshots/                    # Automatic backups logic (store, i18n)
-├── search-enhance/               # Search-by-collection-name logic + UI (shared by popup & options)
+├── bookmarks-bridge/             # Chrome bookmarks + Netscape HTML import/export logic
+├── item-manager/                 # Multi-select + bulk actions + reorder logic
+├── search-enhance/               # Search across collection names AND saved sites, UI shared by popup & options
 ├── shared/                       # Shared utilities (theme, locale, de-duplication, dialogs, i18n engine)
 └── icons/                        # Extension icons
 ```

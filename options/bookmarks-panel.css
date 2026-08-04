@@ -1,0 +1,77 @@
+/* ==========================================================================
+   Keepit — Chrome Bookmarks Bridge panel
+   إضافات CSS صغيرة خاصة بلوحة "جسر إشارات Chrome المرجعية" فقط. تعتمد
+   كليًا على متغيرات التصميم والأصناف الموجودة أصلاً في main.css — لا
+   إعادة تعريف لأي قيمة لون/تباعد/زوايا — لضمان تطابق بصري كامل في كلا
+   الوضعين وكلا الاتجاهين.
+   ========================================================================== */
+
+.keepit-bb-dialog {
+  max-width: 520px;
+}
+
+.keepit-bb-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.keepit-bb-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* كل قسم بعد الأول مفصول بخط علوي خفيف — نفس نمط keepit-ls-pull-section
+   في local-sync-panel.css تمامًا. */
+.keepit-bb-section + .keepit-bb-section {
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-border);
+}
+
+.keepit-bb-section__title {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.keepit-bb-section__desc {
+  font-size: var(--fs-xs);
+  color: var(--color-text-secondary);
+  line-height: var(--lh-normal);
+  margin: 0;
+}
+
+.keepit-bb-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.keepit-bb-field__label {
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-medium);
+  color: var(--color-text-secondary);
+}
+
+.keepit-bb-actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.keepit-bb-empty-note {
+  font-size: var(--fs-xs);
+  color: var(--color-text-tertiary);
+  line-height: var(--lh-normal);
+  margin: 0;
+}
+
+/* حالة "قيد التنفيذ" — عمدًا aria-disabled لا disabled الفعلية، حتى يبقى
+   الزر قابلاً للتركيز فلا تنكسر آلية rerenderPreservingFocus بعد اكتمال
+   العملية (راجع تعليق withBusyButton في bookmarks-panel.js للتفصيل). */
+.keepit-bb-actions .btn[aria-disabled="true"] {
+  opacity: 0.6;
+  pointer-events: none;
+}

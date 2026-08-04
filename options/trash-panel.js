@@ -9,7 +9,7 @@
  * كل القراءة/الكتابة الفعلية تمر عبر trash/store.js؛ هذا الملف مسؤول فقط
  * عن الواجهة والتحكم.
  */
-import { waitForElement, openAccessibleDialog, showToast, rerenderPreservingFocus } from "../local-sync/dom-utils.js";
+import { waitForElement, openAccessibleDialog, showToast, rerenderPreservingFocus, reattachIfDetached } from "../local-sync/dom-utils.js";
 import { confirmDestructive } from "../shared/confirm-dialog.js";
 import { formatRelativeTime } from "../shared/format-time.js";
 import { isSafeFaviconUrl } from "../shared/safe-favicon.js";
@@ -69,6 +69,7 @@ function handleStorageChange(changes, areaName) {
     currentLocale = resolveLocale(changes[KEEPIT_LOCALE_KEY].newValue);
     updateTriggerAria();
     activeDialogRefresh?.();
+    if (triggerBtnEl) void reattachIfDetached(".options__topbar-actions", triggerBtnEl);
   }
 }
 

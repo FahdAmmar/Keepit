@@ -1,0 +1,38 @@
+name: CI
+
+"on":
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# لا صلاحيات كتابة مطلوبة — هذا خط أنابيب فحص فقط (قراءة الكود، تشغيل
+# فحوصات، لا نشر ولا كتابة لأي شيء)، فنُقيّدها صراحةً لأقل صلاحية ممكنة.
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: فحص الأنواع + المانفست + الاختبارات
+    runs-on: ubuntu-latest
+    steps:
+      - name: سحب الكود
+        uses: actions/checkout@v4
+
+      - name: إعداد Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: تثبيت أدوات التطوير (devDependencies فقط — لا تأثير على الإضافة المشحونة)
+        run: npm ci
+
+      - name: فحص الأنواع (tsc --noEmit عبر JSDoc، بلا أي خطوة بناء)
+        run: npm run typecheck
+
+      - name: التحقق من manifest.json (بنية + مسارات الملفات المرجعية)
+        run: npm run validate-manifest
+
+      - name: الاختبارات (Vitest)
+        run: npm run test

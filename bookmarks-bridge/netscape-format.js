@@ -73,10 +73,14 @@ function parseDl(dlElement) {
   return nodes;
 }
 
-/** ADD_DATE في الصيغة القياسية ثوانٍ منذ Unix epoch، لا مللي ثانية. */
+/**
+ * ADD_DATE في الصيغة القياسية ثوانٍ منذ Unix epoch، لا مللي ثانية.
+ * @param {string | null} rawSeconds
+ * @returns {number | undefined}
+ */
 function addedAtFrom(rawSeconds) {
   const n = Number(rawSeconds);
-  if (!Number.isFinite(n) || n <= 0) return null;
+  if (!Number.isFinite(n) || n <= 0) return undefined;
   return Math.round(n * 1000);
 }
 

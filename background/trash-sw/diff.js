@@ -16,11 +16,11 @@
  */
 self.KeepitTrashDiff = {
   /**
-   * @param {{collections?: Array<any>} | null | undefined} oldState
-   * @param {{collections?: Array<any>} | null | undefined} newState
+   * @param {{collections?: KeepitCollection[]} | null | undefined} oldState
+   * @param {{collections?: KeepitCollection[]} | null | undefined} newState
    * @returns {Array<
-   *   | { kind: "collection", collection: object }
-   *   | { kind: "item", item: object, sourceCollection: {id: string, name: string, color: string} }
+   *   | { kind: "collection", collection: KeepitCollection }
+   *   | { kind: "item", item: KeepitItem, sourceCollection: {id: string, name: string, color: string} }
    * >}
    */
   computeDeletions(oldState, newState) {

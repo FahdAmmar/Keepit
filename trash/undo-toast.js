@@ -22,6 +22,7 @@ import { TRASH_KEY, KEEPIT_LOCALE_KEY, UNDO_TOAST_FRESHNESS_MS, UNDO_TOAST_DURAT
 import { restoreEntry } from "./store.js";
 import { t, resolveLocale } from "./i18n.js";
 
+/** @type {"ar" | "en"} */
 let currentLocale = "ar";
 
 init();

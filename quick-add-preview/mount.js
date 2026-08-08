@@ -46,6 +46,7 @@ let currentPanelEl = null;
  *  عملية async)، دون الحاجة لإلغاء الطلب نفسه فعليًا. */
 let requestToken = 0;
 
+/** @type {"ar" | "en"} */
 let currentLocale = "ar";
 
 export function mountQuickAddPreview() {
@@ -75,7 +76,8 @@ export function mountQuickAddPreview() {
 
 function attachIfPresent() {
   const card = document.querySelector(CARD_SELECTOR);
-  const select = card?.querySelector(SELECT_SELECTOR);
+  if (!card) return;
+  const select = card.querySelector(SELECT_SELECTOR);
   if (!(select instanceof HTMLSelectElement) || select === currentSelectEl) return; // لا شيء جديد
 
   // العنصر القديم (إن وُجد) كان شقيقًا لبطاقة .quick-add السابقة التي

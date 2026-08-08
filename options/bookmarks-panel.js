@@ -36,6 +36,7 @@ const TITLE_ID = "keepit-bookmarks-bridge-title";
  *  لا يُنتج هذا الشكل). */
 const EXPORT_ALL_VALUE = "__keepit_export_all__";
 
+/** @type {"ar" | "en"} */
 let currentLocale = "ar";
 /** @type {(() => void) | null} */
 let activeDialogRefresh = null;

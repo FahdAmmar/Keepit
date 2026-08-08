@@ -19,7 +19,7 @@ import { KEEPIT_STATE_KEY } from "./constants.js";
 export async function readCollectionById(collectionId) {
   if (!collectionId) return null;
 
-  const data = await chrome.storage.local.get(KEEPIT_STATE_KEY);
+  const data = /** @type {{[k: string]: KeepitState | undefined}} */ (await chrome.storage.local.get(KEEPIT_STATE_KEY));
   const collections = Array.isArray(data[KEEPIT_STATE_KEY]?.collections) ? data[KEEPIT_STATE_KEY].collections : [];
   const collection = collections.find((c) => c?.id === collectionId);
   if (!collection) return null;

@@ -219,10 +219,10 @@
   function runMigration() {
     try {
       if (!globalThis.chrome || !chrome.storage || !chrome.storage.local) return;
-      chrome.storage.local.get([FLAG_KEY, STATE_KEY], function (items) {
+      chrome.storage.local.get([FLAG_KEY, STATE_KEY], /** @param {{[k: string]: unknown}} items */ function (items) {
         try {
           if (items && items[FLAG_KEY]) return; // تم الترحيل مسبقًا
-          var state = items && items[STATE_KEY];
+          var state = /** @type {KeepitState | null | undefined} */ (items && items[STATE_KEY]);
           if (!state || !Array.isArray(state.collections) || state.collections.length === 0) {
             // لا توجد بيانات بعد؛ نضع العلم لنتخطّي المحاولة مستقبلًا.
             chrome.storage.local.set({ [FLAG_KEY]: 1 });
@@ -238,8 +238,9 @@
             chrome.storage.local.set({ [FLAG_KEY]: 1 });
             return;
           }
+          const safeState = state; // راجع تعليق أسفل: التضييق (narrowing) لا يبقى داخل callback متداخلة
           state.collections = res.merged;
-          if (state.lastUsedCollectionId && !res.merged.some(function (c) { return c.id === state.lastUsedCollectionId; })) {
+          if (state.lastUsedCollectionId && !res.merged.some(function (c) { return c.id === safeState.lastUsedCollectionId; })) {
             state.lastUsedCollectionId = res.merged[0] ? res.merged[0].id : null;
           }
           chrome.storage.local.set({ [STATE_KEY]: state, [FLAG_KEY]: 1 });

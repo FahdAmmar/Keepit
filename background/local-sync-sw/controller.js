@@ -40,17 +40,20 @@
   /** @type {ReturnType<typeof setTimeout> | null} */
   let debounceTimer = null;
   /** أحدث حالة وصلت أثناء فترة التجميع (debounce) — نكتب الأحدث دائمًا. */
+  /** @type {KeepitState | null} */
   let pendingState = null;
   /** حارس تزامن لمنع إنشاء أكثر من مستند offscreen واحد في آن واحد. */
+  /** @type {Promise<void> | null} */
   let creatingOffscreenDocument = null;
   /** حارس تزامن لمنع تشغيل أكثر من دورة "سحب" واحدة في آن واحد. */
+  /** @type {Promise<void> | null} */
   let pullInFlight = null;
 
   chrome.storage.onChanged.addListener((changes, areaName) => {
     if (areaName !== "local") return;
     if (!(C.KEEPIT_STATE_KEY in changes)) return;
 
-    pendingState = changes[C.KEEPIT_STATE_KEY].newValue ?? null;
+    pendingState = /** @type {KeepitState | null} */ (changes[C.KEEPIT_STATE_KEY].newValue ?? null);
 
     if (debounceTimer) clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
@@ -222,9 +225,10 @@
     await creatingOffscreenDocument;
   }
 
+  /** @returns {Promise<KeepitLocalSyncStatus>} */
   async function getStatus() {
     const data = await chrome.storage.local.get(C.STATUS_KEY);
-    return (
+    return /** @type {KeepitLocalSyncStatus} */ (
       data[C.STATUS_KEY] || {
         enabled: false,
         fileName: C.DEFAULT_FILE_NAME,
@@ -238,6 +242,7 @@
     );
   }
 
+  /** @param {Partial<KeepitLocalSyncStatus>} patch */
   async function setStatus(patch) {
     const current = await getStatus();
     await chrome.storage.local.set({

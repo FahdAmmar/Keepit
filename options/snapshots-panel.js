@@ -35,6 +35,7 @@ const ICON_RESTORE = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24
 
 const TITLE_ID = "keepit-snap-title";
 
+/** @type {"ar" | "en"} */
 let currentLocale = "ar";
 let currentSnapshots = [];
 /** @type {(() => void) | null} */

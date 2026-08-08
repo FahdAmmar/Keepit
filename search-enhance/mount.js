@@ -45,6 +45,7 @@ const collapsedIds = new Set();
  *  من chrome.storage في كل نقرة. تُحدَّث فقط داخل updateResults(). */
 let lastRenderedMatches = [];
 
+/** @type {"ar" | "en"} */
 let currentLocale = "ar";
 
 export function mountSearchEnhance() {

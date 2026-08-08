@@ -46,6 +46,7 @@ const FILENAME_INPUT_ID = "keepit-ls-filename";
 
 /** @type {typeof DEFAULT_STATUS} */
 let currentStatus = DEFAULT_STATUS;
+/** @type {"ar" | "en"} */
 let currentLocale = "ar";
 /** @type {HTMLButtonElement | null} */
 let triggerBtnEl = null;
@@ -370,6 +371,11 @@ function buildPullModeGroup(locale, bodyContainer) {
   return group;
 }
 
+/**
+ * @param {string} locale
+ * @param {HTMLElement} bodyContainer
+ * @param {{value: string, titleKey: string, descKey: string, warningKey?: string}} option
+ */
 function buildPullModeOption(locale, bodyContainer, { value, titleKey, descKey, warningKey }) {
   const currentMode = currentStatus.pullMode || PULL_MODE.REPLACE;
   const isSelected = currentMode === value;
@@ -506,7 +512,7 @@ async function onChooseFolder(bodyContainer) {
     // جهة من قبل، فلا نريد أن يمحوها أول اتصال بصمت.
     await reconcileThenPush(bodyContainer, PULL_MODE.MERGE);
   } catch (err) {
-    if (err && typeof err === "object" && err.name === "AbortError") return; // المستخدم أغلق النافذة، ليس خطأً
+    if (err instanceof Error && err.name === "AbortError") return; // المستخدم أغلق النافذة، ليس خطأً
     console.error("[Keepit local sync] folder pick failed", err);
     await persistStatus({ lastError: SYNC_ERRORS.INTERNAL_ERROR });
     updateTriggerDot();

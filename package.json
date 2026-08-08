@@ -1,0 +1,22 @@
+{
+  "name": "keepit",
+  "version": "1.10.0",
+  "private": true,
+  "description": "أدوات التطوير فقط (اختبارات + فحص أنواع) — الإضافة نفسها تعمل بلا أي خطوة بناء (ES modules + سكربتات كلاسيكية تُحمَّل مباشرة). لا تأثير لهذا الملف على ما يُشحَن للمستخدم إطلاقًا؛ راجع manifest.json.",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "validate-manifest": "node scripts/validate-manifest.js",
+    "ci": "npm run typecheck && npm run validate-manifest && npm run test"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.2.5",
+    "@types/wicg-file-system-access": "^2023.10.7",
+    "jsdom": "^30.0.1",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10"
+  }
+}

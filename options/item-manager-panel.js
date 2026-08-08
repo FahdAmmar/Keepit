@@ -41,6 +41,7 @@ const ICON_LINK_FALLBACK =
 
 const TITLE_ID = "keepit-item-manager-title";
 
+/** @type {"ar" | "en"} */
 let currentLocale = "ar";
 /** @type {(() => void) | null} */
 let activeDialogRefresh = null;
@@ -49,6 +50,7 @@ let triggerBtnEl = null;
 
 /** معرّف التصنيف المعروض حاليًا داخل الحوار (يبقى عبر إعادات الرسم؛ يُعاد
  *  ضبطه فقط عند اختيار المستخدم تصنيفًا آخر أو إغلاق الحوار). */
+/** @type {string | null} */
 let activeCollectionId = null;
 /** معرّفات العناصر المحدَّدة حاليًا ضمن التصنيف المعروض. */
 const selectedItemIds = new Set();

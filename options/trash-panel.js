@@ -25,6 +25,7 @@ const ICON_DELETE = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
 
 const TITLE_ID = "keepit-trash-title";
 
+/** @type {"ar" | "en"} */
 let currentLocale = "ar";
 let currentEntries = [];
 /** @type {(() => void) | null} */
@@ -250,11 +251,11 @@ async function onRestore(entry) {
     const result = await restoreEntry(entry);
     if (!result.ok) return;
 
-    if (result.mergedIntoExisting) {
+    if ("mergedIntoExisting" in result && result.mergedIntoExisting) {
       showToast(t(currentLocale, "restoredMergedToast"), "success");
-    } else if (result.alreadyExists) {
+    } else if ("alreadyExists" in result && result.alreadyExists) {
       showToast(t(currentLocale, "alreadyExistsToast"), "success");
-    } else if (result.recreatedCollection) {
+    } else if ("recreatedCollection" in result && result.recreatedCollection) {
       showToast(t(currentLocale, "restoredRecreatedToast"), "success");
     } else {
       showToast(t(currentLocale, "restoredToast"), "success");

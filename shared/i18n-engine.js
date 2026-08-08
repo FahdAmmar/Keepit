@@ -19,12 +19,19 @@ export function detectSystemLocale(lang = typeof navigator !== "undefined" ? nav
  * @param {{ar: Record<string,string>, en: Record<string,string>}} strings
  * @returns {{
  *   t: (locale: string, key: string, params?: Record<string, string|number>) => string,
- *   resolveLocale: (pref: string | undefined) => string,
+ *   resolveLocale: (pref: unknown) => "ar" | "en",
  * }}
  */
 export function createTranslator(strings) {
+  /**
+   * @param {unknown} pref - قيمة خام من chrome.storage، قد لا تكون string
+   *   صالحة أصلاً (تخزين تالف، أو قيمة من إصدار قديم من الإضافة) — لهذا
+   *   unknown لا string، هذه الدالة تحديدًا مصمَّمة للتحقق من مدخل غير موثوق.
+   * @returns {"ar" | "en"}
+   */
   function resolveLocale(pref) {
-    return pref === "system" || !pref ? detectSystemLocale() : pref;
+    if (pref === "ar" || pref === "en") return pref;
+    return detectSystemLocale(); // "system"، أو undefined، أو أي قيمة تالفة غير "ar"/"en" — كلها تُعامَل بنفس الطريقة
   }
 
   function t(locale, key, params) {

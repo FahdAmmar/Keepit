@@ -19,14 +19,13 @@ import { KEEPIT_STATE_KEY, KEEPIT_LOCALE_KEY, MAX_MATCHES, MAX_MATCHED_ITEMS_PER
 
 /**
  * @param {string} query
- * @returns {Promise<Array<any>>} التصنيفات المطابقة (بحقلين إضافيين:
- *   matchedItems وmatchedItemsTotal)، الأقرب أولًا.
+ * @returns {Promise<Array<KeepitCollection & {nameMatches: boolean, matchedItems: KeepitItem[], matchedItemsTotal: number}>>}
  */
 export async function searchMatchingCollections(query) {
   const needle = query.trim().toLowerCase();
   if (!needle) return [];
 
-  const data = await chrome.storage.local.get(KEEPIT_STATE_KEY);
+  const data = /** @type {{[k: string]: KeepitState | undefined}} */ (await chrome.storage.local.get(KEEPIT_STATE_KEY));
   const collections = Array.isArray(data[KEEPIT_STATE_KEY]?.collections) ? data[KEEPIT_STATE_KEY].collections : [];
 
   const results = [];
@@ -65,7 +64,7 @@ function itemMatches(item, needle) {
   return title.includes(needle) || url.includes(needle);
 }
 
-/** @returns {Promise<string | undefined>} */
+/** @returns {Promise<unknown>} قيمة خام غير مُتحقَّق منها؛ مرِّرها عبر resolveLocale() قبل الاستخدام */
 export async function readLocalePreference() {
   const data = await chrome.storage.local.get(KEEPIT_LOCALE_KEY);
   return data[KEEPIT_LOCALE_KEY];

@@ -137,8 +137,9 @@ export async function pullFromLocalFolder({ fileName, mode }) {
   return { ok: true, changed: false };
 }
 
+/** @returns {Promise<KeepitState>} */
 async function getLocalState() {
-  const data = await chrome.storage.local.get(KEEPIT_STATE_KEY);
+  const data = /** @type {{[k: string]: KeepitState | undefined}} */ (await chrome.storage.local.get(KEEPIT_STATE_KEY));
   return data[KEEPIT_STATE_KEY] ?? { schemaVersion: 1, collections: [], lastUsedCollectionId: null };
 }
 

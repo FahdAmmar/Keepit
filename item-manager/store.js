@@ -16,8 +16,9 @@
  */
 import { KEEPIT_STATE_KEY } from "./constants.js";
 
+/** @returns {Promise<KeepitState>} */
 async function readState() {
-  const data = await chrome.storage.local.get(KEEPIT_STATE_KEY);
+  const data = /** @type {{[k: string]: KeepitState | undefined}} */ (await chrome.storage.local.get(KEEPIT_STATE_KEY));
   return data[KEEPIT_STATE_KEY] ?? { schemaVersion: 1, collections: [], lastUsedCollectionId: null };
 }
 
@@ -54,7 +55,9 @@ export async function reorderItems(collectionId, newItemIdsOrder) {
   if (!collection || !Array.isArray(collection.items)) return false;
 
   const byId = new Map(collection.items.map((it) => [it.id, it]));
-  const reordered = newItemIdsOrder.map((id) => byId.get(id)).filter(Boolean);
+  const reordered = newItemIdsOrder
+    .map((id) => byId.get(id))
+    .filter(/** @returns {it is KeepitItem} */ (it) => Boolean(it));
   // أي عنصر لم يكن ضمن newItemIdsOrder (حالة غير متوقعة: مثلًا عنصر أُضيف
   // بالتزامن من سياق آخر بين قراءتنا وحسابنا) يُبقى في آخر القائمة بدل أن
   // يختفي صامتًا ويُسجَّل خطأً في سلة المحذوفات.

@@ -22,13 +22,14 @@
 
   /** @type {ReturnType<typeof setTimeout> | null} */
   let debounceTimer = null;
+  /** @type {KeepitState | null} */
   let pendingState = null;
 
   chrome.storage.onChanged.addListener((changes, areaName) => {
     if (areaName !== "local") return;
     if (!(C.KEEPIT_STATE_KEY in changes)) return;
 
-    pendingState = changes[C.KEEPIT_STATE_KEY].newValue ?? null;
+    pendingState = /** @type {KeepitState | null} */ (changes[C.KEEPIT_STATE_KEY].newValue ?? null);
 
     if (debounceTimer) clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
@@ -39,17 +40,18 @@
     }, C.DEBOUNCE_MS);
   });
 
+  /** @param {KeepitState | null | undefined} state */
   async function maybeTakeAutoSnapshot(state) {
     try {
       const collections = Array.isArray(state?.collections) ? state.collections : [];
       if (collections.length === 0) return; // لا شيء ذو معنى لأخذ نسخة منه بعد
 
-      const data = await chrome.storage.local.get(C.SNAPSHOTS_KEY);
-      const snapshots = Array.isArray(data[C.SNAPSHOTS_KEY]?.snapshots) ? data[C.SNAPSHOTS_KEY].snapshots : [];
+      const data = /** @type {{[k: string]: {snapshots?: KeepitSnapshotRecord[]} | undefined}} */ (
+        await chrome.storage.local.get(C.SNAPSHOTS_KEY)
+      );
+      const snapshots = data[C.SNAPSHOTS_KEY]?.snapshots ?? [];
 
-      const lastAuto = snapshots
-        .filter((s) => s.trigger === "auto")
-        .sort((a, b) => b.takenAt - a.takenAt)[0];
+      const lastAuto = snapshots.filter((s) => s.trigger === "auto").sort((a, b) => b.takenAt - a.takenAt)[0];
 
       if (lastAuto && Date.now() - lastAuto.takenAt < C.MIN_AUTO_INTERVAL_MS) return;
       if (lastAuto && collectionsEqual(lastAuto.collections, collections)) return;
@@ -62,6 +64,11 @@
     }
   }
 
+  /**
+   * @param {KeepitCollection[]} collections
+   * @param {"auto" | "manual"} trigger
+   * @returns {KeepitSnapshotRecord}
+   */
   function buildSnapshot(collections, trigger) {
     const cloned = collections.map(cloneCollection);
     return {
@@ -74,6 +81,7 @@
     };
   }
 
+  /** @param {KeepitCollection} col @returns {KeepitCollection} */
   function cloneCollection(col) {
     return {
       id: col.id,
@@ -86,6 +94,7 @@
     };
   }
 
+  /** @param {KeepitItem} item @returns {KeepitItem} */
   function cloneItem(item) {
     return {
       id: item.id,
@@ -100,6 +109,7 @@
 
   /** مقارنة بنيوية بعد تطبيع ترتيب المفاتيح (نفس فكرة local-sync/compare.js
    *  تمامًا، مُعاد تنفيذها هنا محليًا لتبقى هذه الميزة مستقلة بذاتها). */
+  /** @param {KeepitCollection[] | undefined} a @param {KeepitCollection[] | undefined} b */
   function collectionsEqual(a, b) {
     return stableStringify(a ?? []) === stableStringify(b ?? []);
   }
@@ -124,8 +134,9 @@
    * تجاوز الحد الأقصى المطلق للعمر، وأخيرًا فرض سقف مطلق على العدد الكلي.
    * مُصدَّرة على self ليُعاد استخدام نفس المنطق تمامًا من controller.js
    * الخاص بالنسخ اليدوية إن احتاج ذلك مستقبلًا داخل service worker.
-   * @param {Array<any>} snapshots - غير مُرتَّبة بالضرورة
-   * @param {typeof self.KeepitSnapshotsConstants} cfg
+   * @param {KeepitSnapshotRecord[]} snapshots - غير مُرتَّبة بالضرورة
+   * @param {KeepitSnapshotsConfig} cfg
+   * @returns {KeepitSnapshotRecord[]}
    */
   function pruneSnapshots(snapshots, cfg) {
     const sorted = snapshots.slice().sort((a, b) => b.takenAt - a.takenAt);

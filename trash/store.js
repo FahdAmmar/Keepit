@@ -15,9 +15,11 @@
  */
 import { KEEPIT_STATE_KEY, TRASH_KEY } from "./constants.js";
 
-/** @returns {Promise<Array<any>>} الأحدث حذفًا أولًا */
+/** @returns {Promise<KeepitTrashEntry[]>} الأحدث حذفًا أولًا */
 export async function readTrashEntries() {
-  const data = await chrome.storage.local.get(TRASH_KEY);
+  const data = /** @type {{[k: string]: {entries?: KeepitTrashEntry[]} | undefined}} */ (
+    await chrome.storage.local.get(TRASH_KEY)
+  );
   const entries = data[TRASH_KEY]?.entries;
   return Array.isArray(entries) ? entries.slice().sort((a, b) => b.deletedAt - a.deletedAt) : [];
 }
@@ -34,8 +36,9 @@ export async function emptyTrash() {
 
 /** نفس شكل الحالة الافتراضية بالضبط المستخدَم في local-sync/merge-pull.js
  *  (getLocalState) — نطابقه هنا حتى لا نكتب أبدًا حالة ناقصة الحقول. */
+/** @returns {Promise<KeepitState>} */
 async function readAppState() {
-  const data = await chrome.storage.local.get(KEEPIT_STATE_KEY);
+  const data = /** @type {{[k: string]: KeepitState | undefined}} */ (await chrome.storage.local.get(KEEPIT_STATE_KEY));
   return data[KEEPIT_STATE_KEY] ?? { schemaVersion: 1, collections: [], lastUsedCollectionId: null };
 }
 
@@ -60,7 +63,10 @@ function dedup() {
  */
 export async function restoreCollectionEntry(entryId) {
   const entries = await readTrashEntries();
-  const entry = entries.find((e) => e.id === entryId && e.kind === "collection");
+  const entry = entries.find(
+    /** @returns {e is Extract<KeepitTrashEntry, {kind: "collection"}>} */ (e) =>
+      e.id === entryId && e.kind === "collection",
+  );
   if (!entry) return { ok: false, mergedIntoExisting: false };
 
   const state = await readAppState();
@@ -86,7 +92,9 @@ export async function restoreCollectionEntry(entryId) {
  */
 export async function restoreItemEntry(entryId) {
   const entries = await readTrashEntries();
-  const entry = entries.find((e) => e.id === entryId && e.kind === "item");
+  const entry = entries.find(
+    /** @returns {e is Extract<KeepitTrashEntry, {kind: "item"}>} */ (e) => e.id === entryId && e.kind === "item",
+  );
   if (!entry) return { ok: false, alreadyExists: false, recreatedCollection: false };
 
   const state = await readAppState();
@@ -123,7 +131,14 @@ export async function restoreItemEntry(entryId) {
   return { ok: true, alreadyExists: false, recreatedCollection: true };
 }
 
-/** يوجّه الاستعادة تلقائيًا لدالة النوع المناسب. @param {any} entry */
+/**
+ * يوجّه الاستعادة تلقائيًا لدالة النوع المناسب.
+ * @param {KeepitTrashEntry} entry
+ * @returns {Promise<
+ *   | {ok: boolean, mergedIntoExisting: boolean}
+ *   | {ok: boolean, alreadyExists: boolean, recreatedCollection: boolean}
+ * >}
+ */
 export function restoreEntry(entry) {
   return entry.kind === "collection" ? restoreCollectionEntry(entry.id) : restoreItemEntry(entry.id);
 }

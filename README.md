@@ -10,7 +10,7 @@
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES2022-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](#)
 [![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)](#)
 [![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)](#)
-[![Version](https://img.shields.io/badge/version-1.9.0-6f5bef?style=for-the-badge)](#)
+[![Version](https://img.shields.io/badge/version-1.10.0-6f5bef?style=for-the-badge)](#)
 [![License](https://img.shields.io/badge/license-MIT-22a06b?style=for-the-badge)](#-license)
 
 [![Chrome](https://img.shields.io/badge/Chrome-Supported-4285F4?style=flat-square&logo=googlechrome&logoColor=white)](#-browser-compatibility)
@@ -163,6 +163,38 @@ keepit/
 ├── shared/                       # Shared utilities (theme, locale, de-duplication, dialogs, i18n engine)
 └── icons/                        # Extension icons
 ```
+
+---
+
+## 🧪 Development
+
+The extension itself ships and runs with **zero build step** — every file
+under the paths above is loaded directly by Chrome as-is (native ES
+modules or classic scripts). The tooling below is **dev-time only**
+(`devDependencies` in `package.json`); it never touches what gets shipped.
+
+```bash
+npm install        # once
+npm run typecheck  # tsc --noEmit, via JSDoc annotations (see tsconfig.json + types.d.ts)
+npm run test       # Vitest — pure-logic modules (dedup, merge, import validation, netscape format...)
+npm run validate-manifest  # manifest.json structure + every referenced file path actually exists
+npm run ci         # all three, in order — same as .github/workflows/ci.yml
+```
+
+Type-checking deliberately uses a **gradual-typing** config
+(`noImplicitAny: false`): most of this codebase predates strict typing, and
+requiring a JSDoc annotation on every internal parameter would be mostly
+noise. What's still enforced: real type mismatches, null-safety on
+annotated code, and — the main motivation for adding this at all — every
+`chrome.storage.local.get()` read site now has an explicit, documented
+shape (`types.d.ts`) instead of an implicit, undocumented assumption.
+
+Compiled/bundled output (`background/index.js`, `popup/main.js`,
+`options/main.js`) is excluded from both type-checking and testing — it's
+esbuild output, not hand-authored source; see the "non-invasive layering"
+note in [`local-sync/README.md`](local-sync/README.md) for why every
+feature after v1.5.0 is built as a separate module instead of touching
+those files.
 
 ---
 

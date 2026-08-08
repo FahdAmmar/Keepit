@@ -24,8 +24,10 @@
   let debounceTimer = null;
   /** أقدم "قيمة قديمة" وصلت منذ آخر معالجة — نُثبّتها طوال نافذة التجميع
    *  حتى نقارن "بداية الدفعة" بـ"نهايتها"، لا كل زوج متتالٍ على حدة. */
+  /** @type {KeepitState | null} */
   let pendingOldState = null;
   /** أحدث "قيمة جديدة" وصلت أثناء نافذة التجميع. */
+  /** @type {KeepitState | null} */
   let pendingNewState = null;
   /** true إن كانت الدفعة الحالية تحتوي فعلاً على oldValue حقيقي (وليس
    *  undefined) — نحتاج التمييز لأن null قيمة oldState صالحة أيضًا. */
@@ -37,10 +39,10 @@
 
     const change = changes[C.KEEPIT_STATE_KEY];
     if (!pendingHasOldState) {
-      pendingOldState = change.oldValue ?? null;
+      pendingOldState = /** @type {KeepitState | null} */ (change.oldValue ?? null);
       pendingHasOldState = true;
     }
-    pendingNewState = change.newValue ?? null;
+    pendingNewState = /** @type {KeepitState | null} */ (change.newValue ?? null);
 
     if (debounceTimer) clearTimeout(debounceTimer);
     debounceTimer = setTimeout(() => {
@@ -85,8 +87,11 @@
     }
   }
 
+  /** @param {KeepitTrashEntry[]} newEntries */
   async function appendEntries(newEntries) {
-    const data = await chrome.storage.local.get(C.TRASH_KEY);
+    const data = /** @type {{[k: string]: {entries?: KeepitTrashEntry[]} | undefined}} */ (
+      await chrome.storage.local.get(C.TRASH_KEY)
+    );
     const current = data[C.TRASH_KEY]?.entries;
     const entries = Array.isArray(current) ? current.slice() : [];
     entries.push(...newEntries);
@@ -99,7 +104,9 @@
   }
 
   async function cleanupExpired() {
-    const data = await chrome.storage.local.get(C.TRASH_KEY);
+    const data = /** @type {{[k: string]: {entries?: KeepitTrashEntry[]} | undefined}} */ (
+      await chrome.storage.local.get(C.TRASH_KEY)
+    );
     const current = data[C.TRASH_KEY]?.entries;
     if (!Array.isArray(current) || current.length === 0) return;
 

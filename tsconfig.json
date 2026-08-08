@@ -1,0 +1,42 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "types": ["chrome", "wicg-file-system-access"],
+
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+
+    "strict": true,
+    "noImplicitAny": false,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true
+  },
+  "include": [
+    "types.d.ts",
+    "background/service-worker.js",
+    "background/local-sync-sw/**/*.js",
+    "background/trash-sw/**/*.js",
+    "background/snapshots-sw/**/*.js",
+    "offscreen/**/*.js",
+    "local-sync/**/*.js",
+    "trash/**/*.js",
+    "snapshots/**/*.js",
+    "bookmarks-bridge/**/*.js",
+    "search-enhance/**/*.js",
+    "quick-add-preview/**/*.js",
+    "item-manager/**/*.js",
+    "shared/**/*.js",
+    "options/*.js",
+    "popup/*.js"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/*.test.js",
+    "options/main.js",
+    "popup/main.js"
+  ]
+}

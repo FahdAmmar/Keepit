@@ -34,7 +34,9 @@ if (FS_ACCESS_SUPPORTED) {
 window.KeepitLocalSyncRefresh = async function () {
   if (!FS_ACCESS_SUPPORTED) return { ok: true, changed: false };
   try {
-    const data = await chrome.storage.local.get(STATUS_KEY);
+    const data = /** @type {{[k: string]: KeepitLocalSyncStatus | undefined}} */ (
+      await chrome.storage.local.get(STATUS_KEY)
+    );
     const status = data[STATUS_KEY];
     if (!status?.enabled || !status?.folderName) return { ok: true, changed: false };
 
@@ -49,7 +51,9 @@ window.KeepitLocalSyncRefresh = async function () {
 
 async function runSilentPullCheck() {
   try {
-    const data = await chrome.storage.local.get(STATUS_KEY);
+    const data = /** @type {{[k: string]: KeepitLocalSyncStatus | undefined}} */ (
+      await chrome.storage.local.get(STATUS_KEY)
+    );
     const status = data[STATUS_KEY];
     if (!status?.enabled || !status?.folderName) return;
 
@@ -70,6 +74,10 @@ async function runSilentPullCheck() {
  * آخر فحص فعلي (popup أو options أو المنبّه في الخلفية). قراءة ثم كتابة
  * (وليس عملية ذرية) — مقبول هنا لأن هذه حقول عرض فقط، لا منطق حرج يعتمد
  * عليها.
+ */
+/**
+ * @param {KeepitLocalSyncStatus} status
+ * @param {{ok: boolean, changed?: boolean, error?: string}} result
  */
 async function persistPullResult(status, result) {
   const fresh = await chrome.storage.local.get(STATUS_KEY);

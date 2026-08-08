@@ -41,7 +41,7 @@ export async function readStateFromLocalFolder({ fileName }) {
     try {
       fileHandle = await dirHandle.getFileHandle(safeName, { create: false });
     } catch (err) {
-      if (err && typeof err === "object" && err.name === "NotFoundError") {
+      if (err instanceof Error && err.name === "NotFoundError") {
         return { ok: true, collections: null }; // لا يوجد ملف بعد؛ ليس خطأً
       }
       throw err;

@@ -138,7 +138,7 @@ export function openAccessibleDialog({ titleId, titleText, bodyEl, closeLabel, e
     if (event.key !== "Tab") return;
 
     const focusable = Array.from(dialogEl.querySelectorAll(FOCUSABLE_SELECTOR)).filter(
-      (el) => el instanceof HTMLElement && el.offsetParent !== null,
+      /** @returns {el is HTMLElement} */ (el) => el instanceof HTMLElement && el.offsetParent !== null,
     );
     if (focusable.length === 0) return;
 

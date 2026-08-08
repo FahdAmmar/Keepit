@@ -130,9 +130,14 @@ export function detectSystemLocale() {
   return lang.toLowerCase().startsWith("ar") ? "ar" : "en";
 }
 
-/** @param {string} pref - "system" | "ar" | "en" */
+/**
+ * @param {unknown} pref - قيمة خام من chrome.storage، قد لا تكون string
+ *   صالحة أصلاً (تخزين تالف، أو قيمة من إصدار قديم من الإضافة).
+ * @returns {"ar" | "en"}
+ */
 export function resolveLocale(pref) {
-  return pref === "system" || !pref ? detectSystemLocale() : pref;
+  if (pref === "ar" || pref === "en") return pref;
+  return detectSystemLocale(); // "system"، أو undefined، أو أي قيمة تالفة غير "ar"/"en" — كلها تُعامَل بنفس الطريقة
 }
 
 /**

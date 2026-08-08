@@ -28,8 +28,9 @@ function dedupApi() {
   return api;
 }
 
+/** @returns {Promise<KeepitState>} */
 async function readAppState() {
-  const data = await chrome.storage.local.get(KEEPIT_STATE_KEY);
+  const data = /** @type {{[k: string]: KeepitState | undefined}} */ (await chrome.storage.local.get(KEEPIT_STATE_KEY));
   return data[KEEPIT_STATE_KEY] ?? { schemaVersion: 1, collections: [], lastUsedCollectionId: null };
 }
 

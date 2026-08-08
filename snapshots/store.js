@@ -22,17 +22,20 @@ import {
   MAX_SNAPSHOTS,
 } from "./constants.js";
 
-/** @returns {Promise<Array<any>>} الأحدث أولًا */
+/** @returns {Promise<KeepitSnapshotRecord[]>} الأحدث أولًا */
 export async function readSnapshots() {
-  const data = await chrome.storage.local.get(SNAPSHOTS_KEY);
+  const data = /** @type {{[k: string]: {snapshots?: KeepitSnapshotRecord[]} | undefined}} */ (
+    await chrome.storage.local.get(SNAPSHOTS_KEY)
+  );
   const snapshots = data[SNAPSHOTS_KEY]?.snapshots;
   return Array.isArray(snapshots) ? snapshots.slice().sort((a, b) => b.takenAt - a.takenAt) : [];
 }
 
 /** نفس شكل الحالة الافتراضية بالضبط المستخدَم في local-sync/merge-pull.js
  *  (getLocalState) — نطابقه هنا حتى لا نكتب أبدًا حالة ناقصة الحقول. */
+/** @returns {Promise<KeepitState>} */
 async function readAppState() {
-  const data = await chrome.storage.local.get(KEEPIT_STATE_KEY);
+  const data = /** @type {{[k: string]: KeepitState | undefined}} */ (await chrome.storage.local.get(KEEPIT_STATE_KEY));
   return data[KEEPIT_STATE_KEY] ?? { schemaVersion: 1, collections: [], lastUsedCollectionId: null };
 }
 

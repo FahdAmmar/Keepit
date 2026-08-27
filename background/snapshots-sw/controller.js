@@ -149,11 +149,21 @@
     const recent = notExpired.slice(0, cfg.KEEP_RECENT_COUNT);
     const older = notExpired.slice(cfg.KEEP_RECENT_COUNT);
 
+    // ثلاث طبقات كثافة متدرّجة: كامل (recent) -> نسخة واحدة/يوم (حتى
+    // dailyCutoff) -> نسخة واحدة/أسبوع (حتى maxAgeCutoff). بلا الطبقة
+    // الأسبوعية، كل ما بعد dailyCutoff كان يُحتفَظ به كاملاً بلا أي تنقية —
+    // فجوة حقيقية مُثبَتة باختبار وحدة (راجع snapshots/store.test.js):
+    // نافذة كاملة بين KEEP_DAILY_DAYS وMAX_AGE_DAYS بلا أي حد كثافة سوى
+    // السقف الإجمالي النهائي (MAX_SNAPSHOTS) أسفل هذه الدالة.
     const seenDays = new Set();
+    const seenWeeks = new Set();
     const thinnedOlder = [];
     for (const snap of older) {
       if (snap.takenAt < dailyCutoff) {
-        thinnedOlder.push(snap); // أقدم من نافذة التنقية اليومية: يُترَك كما هو (لن يتجاوز MAX_AGE_DAYS أعلاه)
+        const weekKey = isoWeekKey(snap.takenAt);
+        if (seenWeeks.has(weekKey)) continue;
+        seenWeeks.add(weekKey);
+        thinnedOlder.push(snap);
         continue;
       }
       const dayKey = new Date(snap.takenAt).toISOString().slice(0, 10);
@@ -163,6 +173,15 @@
     }
 
     return [...recent, ...thinnedOlder].slice(0, cfg.MAX_SNAPSHOTS);
+  }
+
+  /** مفتاح "سنة-أسبوع" تقريبي، كافٍ لغرض التجميع هنا. @param {number} ts */
+  function isoWeekKey(ts) {
+    const date = new Date(ts);
+    const dayMs = 24 * 60 * 60 * 1000;
+    const startOfYear = Date.UTC(date.getUTCFullYear(), 0, 1);
+    const weekNumber = Math.floor((date.getTime() - startOfYear) / (7 * dayMs));
+    return `${date.getUTCFullYear()}-W${weekNumber}`;
   }
 
   self.KeepitSnapshotsPrune = pruneSnapshots;

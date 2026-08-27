@@ -20,7 +20,11 @@
  * يحذف أي تصنيف Keepit موجود مسبقًا).
  */
 import { toInternalCollections } from "../local-sync/import-schema.js";
+import { writeStateOptimistically } from "../shared/optimistic-state-write.js";
 import { KEEPIT_STATE_KEY, COLOR_CYCLE } from "./constants.js";
+
+/** @type {KeepitState} */
+const EMPTY_STATE = { schemaVersion: 1, collections: [], lastUsedCollectionId: null };
 
 function dedupApi() {
   const api = /** @type {any} */ (globalThis).KeepitDedup;
@@ -31,7 +35,7 @@ function dedupApi() {
 /** @returns {Promise<KeepitState>} */
 async function readAppState() {
   const data = /** @type {{[k: string]: KeepitState | undefined}} */ (await chrome.storage.local.get(KEEPIT_STATE_KEY));
-  return data[KEEPIT_STATE_KEY] ?? { schemaVersion: 1, collections: [], lastUsedCollectionId: null };
+  return data[KEEPIT_STATE_KEY] ?? EMPTY_STATE;
 }
 
 /** @returns {Promise<Array<any>>} تصنيفات Keepit الحالية، للاستخدام في قائمة اختيار التصدير */
@@ -71,14 +75,25 @@ export async function importNormalizedCollections(normalizedCollections) {
 
   const attemptedItems = internalCols.reduce((n, c) => n + c.items.length, 0);
 
-  const state = await readAppState();
-  const existing = Array.isArray(state.collections) ? state.collections : [];
-  const { merged, skippedItems: duplicateItems } = dedupApi().mergeCollections(existing, internalCols);
-
-  state.collections = merged;
-  state.schemaVersion = state.schemaVersion ?? 1;
-  if (!state.lastUsedCollectionId && merged[0]) state.lastUsedCollectionId = merged[0].id;
-  await chrome.storage.local.set({ [KEEPIT_STATE_KEY]: state });
+  // يُعاد حسابه من جديد داخل mutate عند كل محاولة (لا يُلتقَط من خارجها)
+  // لأنه يعتمد على الحالة الحالية الفعلية وقت الكتابة، لا وقت أول قراءة —
+  // بالضبط ما تحمي منه writeStateOptimistically عبر إعادة استدعاء mutate
+  // كاملة عند اكتشاف تغيّر متزامن.
+  let duplicateItems = 0;
+  await writeStateOptimistically(
+    KEEPIT_STATE_KEY,
+    (state) => {
+      const existing = Array.isArray(state.collections) ? state.collections : [];
+      const merged = dedupApi().mergeCollections(existing, internalCols);
+      duplicateItems = merged.skippedItems;
+      return {
+        schemaVersion: state.schemaVersion ?? 1,
+        collections: merged.merged,
+        lastUsedCollectionId: state.lastUsedCollectionId ?? merged.merged[0]?.id ?? null,
+      };
+    },
+    EMPTY_STATE,
+  );
 
   return {
     importedCollections: internalCols.length,

@@ -78,7 +78,7 @@
 
   --color-tag-indigo: #5b6fef;
   --color-tag-sky: #2fa8d9;
-  --color-tag-violet: #8b5cf6;
+  --color-tag-violet: #bd5cf6; /* كان #8b5cf6 — أُبعد صبغيًا عن indigo (كانا 26° فقط، صار ~46°) لتمايز أوضح بصريًا */
   --color-tag-emerald: #2d9d78;
   --color-tag-amber: #d48806;
   --color-tag-rose: #e1567c;
@@ -108,7 +108,7 @@
   --color-border-strong: #d4d8e2;
   --color-text: #16181d;
   --color-text-secondary: #555b68;
-  --color-text-tertiary: #8b91a1;
+  --color-text-tertiary: #6d7487; /* كان #8b91a1 (3.15:1) — رُفع لتحقيق 4.5:1 WCAG AA فعليًا على خلفية بيضاء */
   --color-primary-tint: #ecfdf5;
 
   --glass-bg: color-mix(in srgb, var(--color-surface) 72%, transparent);
@@ -138,12 +138,12 @@
   --color-border-strong: #383d49;
   --color-text: #edeef1;
   --color-text-secondary: #9ea4b2;
-  --color-text-tertiary: #6a6f7d;
+  --color-text-tertiary: #797e8d; /* كان #6a6f7d (3.70:1) — رُفع لتحقيق 4.5:1 WCAG AA فعليًا على خلفية داكنة */
   --color-primary-tint: rgba(52, 179, 137, .14);
 
   --color-tag-indigo: #7b8cf2;
   --color-tag-sky: #4fc1ee;
-  --color-tag-violet: #a78bfa;
+  --color-tag-violet: #d08bfa; /* كان #a78bfa — نفس التعديل لوضع الليل */
   --color-tag-emerald: #34c98a;
   --color-tag-amber: #e6a93b;
   --color-tag-rose: #f17c9c;
@@ -531,6 +531,12 @@ input, textarea, select, button { font-family: inherit; font-size: inherit; }
   max-width: 80px;
   opacity: 1;
 }
+@media (hover: none) {
+  .item-row__actions {
+    max-width: 80px;
+    opacity: 1;
+  }
+}
 
 /* ---------- Collection rows (animated gradient indicator) ---------- */
 .collection-row {
@@ -590,6 +596,13 @@ input, textarea, select, button { font-family: inherit; font-size: inherit; }
   max-width: 110px;
   padding-inline-end: var(--space-2);
   opacity: 1;
+}
+@media (hover: none) {
+  .collection-row__actions {
+    max-width: 110px;
+    padding-inline-end: var(--space-2);
+    opacity: 1;
+  }
 }
 .collection-row__actions .btn.is-active { color: var(--color-primary); }
 .collection-row__name {

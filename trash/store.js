@@ -14,6 +14,12 @@
  * موقعًا مكررًا بالرابط.
  */
 import { KEEPIT_STATE_KEY, TRASH_KEY } from "./constants.js";
+import { writeStateOptimistically } from "../shared/optimistic-state-write.js";
+
+/** @type {{entries: KeepitTrashEntry[]}} */
+const EMPTY_TRASH = { entries: [] };
+/** @type {KeepitState} */
+const EMPTY_STATE = { schemaVersion: 1, collections: [], lastUsedCollectionId: null };
 
 /** @returns {Promise<KeepitTrashEntry[]>} الأحدث حذفًا أولًا */
 export async function readTrashEntries() {
@@ -25,25 +31,15 @@ export async function readTrashEntries() {
 }
 
 export async function deleteEntryPermanently(entryId) {
-  const entries = await readTrashEntries();
-  const next = entries.filter((e) => e.id !== entryId);
-  await chrome.storage.local.set({ [TRASH_KEY]: { entries: next } });
+  await writeStateOptimistically(
+    TRASH_KEY,
+    (current) => ({ entries: (current.entries ?? []).filter((e) => e.id !== entryId) }),
+    EMPTY_TRASH,
+  );
 }
 
 export async function emptyTrash() {
-  await chrome.storage.local.set({ [TRASH_KEY]: { entries: [] } });
-}
-
-/** نفس شكل الحالة الافتراضية بالضبط المستخدَم في local-sync/merge-pull.js
- *  (getLocalState) — نطابقه هنا حتى لا نكتب أبدًا حالة ناقصة الحقول. */
-/** @returns {Promise<KeepitState>} */
-async function readAppState() {
-  const data = /** @type {{[k: string]: KeepitState | undefined}} */ (await chrome.storage.local.get(KEEPIT_STATE_KEY));
-  return data[KEEPIT_STATE_KEY] ?? { schemaVersion: 1, collections: [], lastUsedCollectionId: null };
-}
-
-async function writeAppState(state) {
-  await chrome.storage.local.set({ [KEEPIT_STATE_KEY]: state });
+  await writeStateOptimistically(TRASH_KEY, () => EMPTY_TRASH, EMPTY_TRASH);
 }
 
 function dedup() {
@@ -69,12 +65,21 @@ export async function restoreCollectionEntry(entryId) {
   );
   if (!entry) return { ok: false, mergedIntoExisting: false };
 
-  const state = await readAppState();
-  const existingCollections = Array.isArray(state.collections) ? state.collections : [];
-  const mergedIntoExisting = Boolean(dedup().findDuplicateCollection(existingCollections, entry.collection.name));
-
-  const { merged } = dedup().mergeCollections(existingCollections, [entry.collection]);
-  await writeAppState({ ...state, collections: merged });
+  // يُعاد حسابه من جديد داخل mutate عند كل محاولة (لا يُلتقَط من خارجها)
+  // لأنه يعتمد على الحالة الحالية الفعلية وقت الكتابة، لا وقت أول قراءة —
+  // بالضبط ما تحمي منه writeStateOptimistically عبر إعادة استدعاء mutate
+  // كاملة عند اكتشاف تغيّر متزامن.
+  let mergedIntoExisting = false;
+  await writeStateOptimistically(
+    KEEPIT_STATE_KEY,
+    (state) => {
+      const existingCollections = Array.isArray(state.collections) ? state.collections : [];
+      mergedIntoExisting = Boolean(dedup().findDuplicateCollection(existingCollections, entry.collection.name));
+      const { merged } = dedup().mergeCollections(existingCollections, [entry.collection]);
+      return { ...state, collections: merged };
+    },
+    EMPTY_STATE,
+  );
   await deleteEntryPermanently(entryId);
 
   return { ok: true, mergedIntoExisting };
@@ -97,38 +102,45 @@ export async function restoreItemEntry(entryId) {
   );
   if (!entry) return { ok: false, alreadyExists: false, recreatedCollection: false };
 
-  const state = await readAppState();
-  const collections = Array.isArray(state.collections) ? state.collections : [];
-  const target = collections.find((c) => c.id === entry.sourceCollection.id);
+  let alreadyExists = false;
+  let recreatedCollection = false;
+  await writeStateOptimistically(
+    KEEPIT_STATE_KEY,
+    (state) => {
+      alreadyExists = false;
+      recreatedCollection = false;
+      const collections = Array.isArray(state.collections) ? state.collections : [];
+      const target = collections.find((c) => c.id === entry.sourceCollection.id);
 
-  if (target) {
-    const dup = dedup().findDuplicateItem(target.items, entry.item.url, entry.item.title);
-    if (dup.url || dup.title) {
-      await deleteEntryPermanently(entryId);
-      return { ok: true, alreadyExists: true, recreatedCollection: false };
-    }
+      if (target) {
+        const dup = dedup().findDuplicateItem(target.items, entry.item.url, entry.item.title);
+        if (dup.url || dup.title) {
+          alreadyExists = true;
+          return state; // بلا أي تغيير — writeStateOptimistically لن تكتب فعليًا
+        }
+        const updatedCollections = collections.map((c) =>
+          c.id === target.id ? { ...c, items: [...c.items, entry.item], updatedAt: Date.now() } : c,
+        );
+        return { ...state, collections: updatedCollections };
+      }
 
-    const updatedCollections = collections.map((c) =>
-      c.id === target.id ? { ...c, items: [...c.items, entry.item], updatedAt: Date.now() } : c,
-    );
-    await writeAppState({ ...state, collections: updatedCollections });
-    await deleteEntryPermanently(entryId);
-    return { ok: true, alreadyExists: false, recreatedCollection: false };
-  }
-
-  const recreated = {
-    id: crypto.randomUUID(),
-    name: entry.sourceCollection.name,
-    color: entry.sourceCollection.color,
-    pinned: false,
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
-    items: [entry.item],
-  };
-  const { merged } = dedup().mergeCollections(collections, [recreated]);
-  await writeAppState({ ...state, collections: merged });
+      recreatedCollection = true;
+      const recreated = {
+        id: crypto.randomUUID(),
+        name: entry.sourceCollection.name,
+        color: entry.sourceCollection.color,
+        pinned: false,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        items: [entry.item],
+      };
+      const { merged } = dedup().mergeCollections(collections, [recreated]);
+      return { ...state, collections: merged };
+    },
+    EMPTY_STATE,
+  );
   await deleteEntryPermanently(entryId);
-  return { ok: true, alreadyExists: false, recreatedCollection: true };
+  return { ok: true, alreadyExists, recreatedCollection };
 }
 
 /**

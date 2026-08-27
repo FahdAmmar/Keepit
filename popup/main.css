@@ -78,7 +78,7 @@
 
   --color-tag-indigo: #5b6fef;
   --color-tag-sky: #2fa8d9;
-  --color-tag-violet: #8b5cf6;
+  --color-tag-violet: #bd5cf6; /* كان #8b5cf6 — أُبعد صبغيًا عن indigo (كانا 26° فقط، صار ~46°) لتمايز أوضح بصريًا */
   --color-tag-emerald: #2d9d78;
   --color-tag-amber: #d48806;
   --color-tag-rose: #e1567c;
@@ -108,7 +108,7 @@
   --color-border-strong: #d4d8e2;
   --color-text: #16181d;
   --color-text-secondary: #555b68;
-  --color-text-tertiary: #8b91a1;
+  --color-text-tertiary: #6d7487; /* كان #8b91a1 (3.15:1) — رُفع لتحقيق 4.5:1 WCAG AA فعليًا على خلفية بيضاء */
   --color-primary-tint: #ecfdf5;
 
   /* Glass tokens */
@@ -140,12 +140,12 @@
   --color-border-strong: #383d49;
   --color-text: #edeef1;
   --color-text-secondary: #9ea4b2;
-  --color-text-tertiary: #6a6f7d;
+  --color-text-tertiary: #797e8d; /* كان #6a6f7d (3.70:1) — رُفع لتحقيق 4.5:1 WCAG AA فعليًا على خلفية داكنة */
   --color-primary-tint: rgba(52, 179, 137, .14);
 
   --color-tag-indigo: #7b8cf2;
   --color-tag-sky: #4fc1ee;
-  --color-tag-violet: #a78bfa;
+  --color-tag-violet: #d08bfa; /* كان #a78bfa — نفس التعديل لوضع الليل */
   --color-tag-emerald: #34c98a;
   --color-tag-amber: #e6a93b;
   --color-tag-rose: #f17c9c;
@@ -542,6 +542,15 @@ input, textarea, select, button { font-family: inherit; font-size: inherit; }
   max-width: 80px;
   opacity: 1;
 }
+/* أجهزة بلا قدرة hover فعلية (شاشات لمس) — الإجراءات ظاهرة دائمًا بدل
+   الاعتماد على hover غير المتاح هناك أصلاً. لا يؤثر على مستخدمي
+   الفأرة/لوحة اللمس إطلاقًا (media query لا يتحقق لهم). */
+@media (hover: none) {
+  .item-row__actions {
+    max-width: 80px;
+    opacity: 1;
+  }
+}
 
 /* ---------- Collection rows (animated gradient indicator) ---------- */
 .collection-row {
@@ -609,6 +618,13 @@ input, textarea, select, button { font-family: inherit; font-size: inherit; }
   max-width: 110px;
   padding-inline-end: var(--space-2);
   opacity: 1;
+}
+@media (hover: none) {
+  .collection-row__actions {
+    max-width: 110px;
+    padding-inline-end: var(--space-2);
+    opacity: 1;
+  }
 }
 .collection-row__actions .btn.is-active { color: var(--color-primary); }
 .collection-row__name {
@@ -909,8 +925,16 @@ body { width: 384px; }
     radial-gradient(120px 80px at 0% 0%, color-mix(in srgb, var(--color-primary) 24%, transparent), transparent 70%),
     radial-gradient(140px 90px at 100% 100%, color-mix(in srgb, var(--color-tag-violet) 22%, transparent), transparent 70%);
   opacity: .9;
-  animation: keepit-aurora-pan 14s var(--ease-standard) infinite;
   background-size: 200% 200%;
+  /* ثابتة افتراضيًا — الخلفية جميلة بلا حركة أصلاً. تتحرك فقط عند تفاعل
+     حقيقي (hover/focus)، بنفس نمط لمعة الشعار في الترويسة أدناه، بدل حلقة
+     لا تتوقف على أهم بطاقة بالواجهة (تُفتح عشرات المرات يوميًا). */
+  animation: keepit-aurora-pan 14s var(--ease-standard) infinite;
+  animation-play-state: paused;
+}
+.quick-add:hover::before,
+.quick-add:focus-within::before {
+  animation-play-state: running;
 }
 .quick-add::after {
   content: "";
@@ -971,9 +995,12 @@ body { width: 384px; }
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  font-size: var(--fs-md);
+  /* أكبر حجم خط مُستخدَم فعليًا بالواجهة عمدًا (بدل fs-md كباقي العناوين) —
+     هذه لحظة "أين أنا الآن" الوحيدة بالتنقّل، تستحق ثقلًا بصريًا واضحًا
+     يميّزها بدل التنافس بنفس الوزن مع كل نص آخر. */
+  font-size: var(--fs-xl);
   font-weight: var(--fw-semibold);
-  letter-spacing: -.01em;
+  letter-spacing: -.02em;
 }
 .detail-header__title span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 

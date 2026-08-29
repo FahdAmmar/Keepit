@@ -3,13 +3,9 @@
  * background/trash-sw/diff.js
  * ---------------------------------------------------------------------------
  * دالة صرفة (pure) لا آثار جانبية لها: تقارن حالة "قديمة" و"جديدة" لـ
- * keepit:state وتُرجع كل تصنيف أو موقع كان موجودًا في القديمة واختفى من
- * الجديدة. لا تفترض *سبب* الاختفاء (حذف يدوي، حذف عبر قائمة السياق، أو
- * حتى حذف ناتج عن "سحب" وضع "استبدال" في ميزة المزامنة المحلية) — أي
- * اختفاء بنيوي حقيقي يُعامَل بنفس الطريقة، وهذا مقصود: فهو بالضبط ما يجعل
- * سلة المحذوفات شبكة أمان ضد الخطر الوحيد الموثَّق في local-sync/README.md
- * (فقدان بيانات صامت في وضع "استبدال")، دون أي معرفة أو اقتران بكود تلك
- * الميزة إطلاقًا.
+ * keepit:state وتُرجع كل تصنيف اختفى، وكل موقع لم يعد موجودًا في أي
+ * تصنيف. وجود معرّف الموقع نفسه في تصنيف آخر يُعامَل كنقل، لا كحذف، كي لا
+ * تُنشئ سلة المحذوفات سجلًا زائفًا عند استخدام إجراء النقل الجماعي.
  *
  * المقارنة تتم بحسب المعرّف (id) لا بحسب الفهرس (index) أو الاسم، لتبقى
  * صحيحة حتى مع إعادة الترتيب أو تغيير الاسم.
@@ -29,6 +25,15 @@ self.KeepitTrashDiff = {
 
     const newCollections = Array.isArray(newState?.collections) ? newState.collections : [];
     const newById = new Map(newCollections.filter(isValidCollection).map((c) => [c.id, c]));
+    // معرّف العنصر فريد عبر كل التصنيفات. وجوده في أي تصنيف جديد يعني أنه
+    // نُقل فقط، لا أنه حُذف، ولذلك لا ينبغي إنشاء إدخال سلة زائف له.
+    const allNewItemIds = new Set(
+      newCollections.flatMap((collection) =>
+        isValidCollection(collection) && Array.isArray(collection.items)
+          ? collection.items.filter(isValidItem).map((item) => item.id)
+          : [],
+      ),
+    );
 
     const deletions = [];
 
@@ -49,7 +54,7 @@ self.KeepitTrashDiff = {
       const oldItems = Array.isArray(oldCol.items) ? oldCol.items : [];
       for (const oldItem of oldItems) {
         if (!isValidItem(oldItem)) continue;
-        if (newItemIds.has(oldItem.id)) continue;
+        if (newItemIds.has(oldItem.id) || allNewItemIds.has(oldItem.id)) continue;
         deletions.push({
           kind: "item",
           item: cloneItem(oldItem),

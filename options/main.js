@@ -1350,7 +1350,7 @@
         return o
     }
     async function Xe() {
-        return [...(await P()).collections].sort((e, o) => e.pinned !== o.pinned ? e.pinned ? -1 : 1 : o.createdAt - e.createdAt)
+        return [...(await P()).collections]
     }
     async function Qe(t, e = ie) {
         let o = Y(t);
@@ -2611,7 +2611,7 @@
         y.collections = t;
         let o = t.some(r => r.id === e.lastUsedCollectionId);
         y.selectedCollectionId = o ? e.lastUsedCollectionId : t[0]?.id ?? null, Q(), De(r => {
-            y.collections = [...r.collections].sort((i, l) => i.pinned !== l.pinned ? i.pinned ? -1 : 1 : l.createdAt - i.createdAt), y.selectedCollectionId && !y.collections.some(i => i.id === y.selectedCollectionId) && (y.selectedCollectionId = y.collections[0]?.id ?? null), Q()
+            y.collections = [...r.collections], y.selectedCollectionId && !y.collections.some(i => i.id === y.selectedCollectionId) && (y.selectedCollectionId = y.collections[0]?.id ?? null), Q()
         })
     }
     vo();

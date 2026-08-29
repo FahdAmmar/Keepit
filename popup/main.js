@@ -1341,7 +1341,7 @@
         return o
     }
     async function Oe() {
-        return [...(await M()).collections].sort((e, o) => e.pinned !== o.pinned ? e.pinned ? -1 : 1 : o.createdAt - e.createdAt)
+        return [...(await M()).collections]
     }
     async function He(t, e = Ae) {
         let o = Me(t);
@@ -2312,7 +2312,7 @@
         m.collections = t, m.activeTab = o, m.shortcutHint = i;
         let a = t.some(s => s.id === e.lastUsedCollectionId);
         m.quickAddCollectionId = a ? e.lastUsedCollectionId : t[0]?.id ?? null, D(), ye(s => {
-            m.collections = [...s.collections].sort((p, h) => p.pinned !== h.pinned ? p.pinned ? -1 : 1 : h.createdAt - p.createdAt), m.collections.some(p => p.id === m.quickAddCollectionId) || (m.quickAddCollectionId = m.collections[0]?.id ?? null), D()
+            m.collections = [...s.collections], m.collections.some(p => p.id === m.quickAddCollectionId) || (m.quickAddCollectionId = m.collections[0]?.id ?? null), D()
         })
     }
     async function Ft() {

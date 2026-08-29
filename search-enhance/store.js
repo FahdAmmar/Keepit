@@ -11,11 +11,13 @@
  *
  * كل تصنيف يظهر في النتائج لسبب واحد على الأقل:
  *   - اسمه نفسه يطابق نص البحث (matchInName)، أو
- *   - أحد مواقعه يطابق (matchedItems غير فارغة) — بعنوانه أو رابطه.
+ *   - أحد مواقعه يطابق (matchedItems غير فارغة) — بعنوانه أو رابطه أو
+ *     ملاحظته أو أحد وسومه.
  * الفرز: اسم يبدأ بالنص أولًا، ثم اسم يحتويه فقط، ثم تطابق عبر المواقع
  * فقط، وأبجديًا داخل كل مستوى.
  */
 import { KEEPIT_STATE_KEY, KEEPIT_LOCALE_KEY, MAX_MATCHES, MAX_MATCHED_ITEMS_PER_COLLECTION } from "./constants.js";
+import { normalizeTags } from "../shared/tag-utils.js";
 
 /**
  * @param {string} query
@@ -59,9 +61,11 @@ export async function searchMatchingCollections(query) {
 /** @param {any} item @param {string} needle (مُطبَّع مسبقًا: trim + toLowerCase) */
 function itemMatches(item, needle) {
   if (!item) return false;
-  const title = typeof item.title === "string" ? item.title.toLowerCase() : "";
-  const url = typeof item.url === "string" ? item.url.toLowerCase() : "";
-  return title.includes(needle) || url.includes(needle);
+  const title = typeof item.title === "string" ? item.title.toLocaleLowerCase() : "";
+  const url = typeof item.url === "string" ? item.url.toLocaleLowerCase() : "";
+  const note = typeof item.note === "string" ? item.note.toLocaleLowerCase() : "";
+  const tags = normalizeTags(item.tags).join(" ").toLocaleLowerCase();
+  return title.includes(needle) || url.includes(needle) || note.includes(needle) || tags.includes(needle);
 }
 
 /** @returns {Promise<unknown>} قيمة خام غير مُتحقَّق منها؛ مرِّرها عبر resolveLocale() قبل الاستخدام */

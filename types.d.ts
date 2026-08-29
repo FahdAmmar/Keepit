@@ -29,6 +29,15 @@ declare global {
     title: string;
     faviconUrl?: string;
     note?: string;
+    /** وسوم محلية اختيارية قابلة للبحث والتصفية. */
+    tags?: string[];
+    /** عدّاد فتح الرابط وآخر وقت فتحه؛ يُستخدمان للفرز والإحصاءات. */
+    usageCount?: number;
+    lastOpenedAt?: number;
+    /** آخر نتيجة لفحص الرابط الدوري. */
+    linkStatus?: { status: "ok" | "broken" | "restricted" | "error" | "timeout" | "unreachable"; statusCode?: number; checkedAt: number };
+    /** نسخة قراءة محلية محدودة الحجم من الصفحة وقت الأرشفة. */
+    archive?: { version: number; capturedAt: number; title: string; description: string; text: string; html: string; screenshot?: string };
     createdAt: number;
     order: number;
   }

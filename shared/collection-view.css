@@ -1,0 +1,40 @@
+.keepit-collection-view-control {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  margin-inline-start: auto;
+  color: var(--color-text-secondary);
+  font-size: var(--fs-xs, 12px);
+  font-weight: var(--fw-medium, 500);
+}
+
+.keepit-collection-view-control .input {
+  width: auto;
+  min-width: 132px;
+  min-height: 30px;
+  padding-block: 3px;
+  padding-inline: 8px 26px;
+  font-size: var(--fs-xs, 12px);
+}
+
+.options__sidebar > .keepit-collection-view-control {
+  margin-inline-start: 0;
+  align-self: flex-start;
+}
+
+.keepit-collection-list--sorted .keepit-collection-drag-handle[disabled] {
+  cursor: not-allowed;
+  opacity: 0.38;
+}
+
+@media (max-width: 520px) {
+  .keepit-collection-view-control {
+    width: 100%;
+    justify-content: space-between;
+    margin-inline-start: 0;
+  }
+
+  .keepit-collection-view-control .input {
+    flex: 1;
+  }
+}

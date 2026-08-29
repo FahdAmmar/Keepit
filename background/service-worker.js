@@ -24,6 +24,7 @@
  */
 importScripts(
   "index.js",
+  "action-popup-sw.js",
   "local-sync-sw/constants.js",
   "local-sync-sw/controller.js",
   "trash-sw/constants.js",

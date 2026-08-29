@@ -1,0 +1,92 @@
+/* شارات المجموعات: لون + شكل + رمز لتسهيل التعرّف البصري، دون تغيير
+   القيمة المخزنة للّون أو تسميات الألوان الموجودة. */
+.color-dot[data-appearance],
+.keepit-appearance-swatch {
+  display: inline-grid;
+  place-items: center;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.color-dot[data-appearance] {
+  inline-size: 19px;
+  block-size: 19px;
+  border: 1px solid color-mix(in srgb, var(--tag-color) 68%, white 14%);
+  background: color-mix(in srgb, var(--tag-color) 88%, #111318 12%);
+  box-shadow: 0 1px 4px color-mix(in srgb, var(--tag-color) 26%, transparent);
+}
+
+.color-dot[data-appearance="circle"] { border-radius: 50%; }
+.color-dot[data-appearance="diamond"] { border-radius: 5px; transform: rotate(45deg); }
+.color-dot[data-appearance="sparkle"] { border-radius: 7px; clip-path: polygon(50% 0%, 61% 34%, 100% 50%, 61% 66%, 50% 100%, 39% 66%, 0% 50%, 39% 34%); }
+.color-dot[data-appearance="square"] { border-radius: 5px; }
+.color-dot[data-appearance="star"] { border-radius: 7px; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 56%, 79% 92%, 50% 70%, 21% 92%, 32% 56%, 2% 35%, 39% 35%); }
+.color-dot[data-appearance="flower"] { border-radius: 50%; clip-path: polygon(50% 0%, 61% 28%, 87% 13%, 77% 40%, 100% 50%, 77% 60%, 87% 87%, 61% 72%, 50% 100%, 39% 72%, 13% 87%, 23% 60%, 0% 50%, 23% 40%, 13% 13%, 39% 28%); }
+.color-dot[data-appearance="outline"] { border-radius: 5px; background: color-mix(in srgb, var(--tag-color) 28%, var(--color-surface) 72%); }
+
+.color-dot .keepit-appearance-glyph {
+  color: color-mix(in srgb, white 92%, var(--tag-color));
+  font-size: 9px;
+  line-height: 1;
+  font-weight: 800;
+  text-shadow: none;
+  pointer-events: none;
+}
+.color-dot[data-appearance="diamond"] .keepit-appearance-glyph { transform: rotate(-45deg); }
+.color-dot[data-appearance="star"] .keepit-appearance-glyph,
+.color-dot[data-appearance="flower"] .keepit-appearance-glyph { font-size: 7px; }
+.color-dot[data-appearance="outline"] .keepit-appearance-glyph { color: var(--tag-color); }
+
+.color-picker {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(34px, 1fr));
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid color-mix(in srgb, var(--color-border) 82%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--color-surface-2) 78%, transparent);
+}
+
+.keepit-appearance-swatch {
+  inline-size: 100%;
+  aspect-ratio: 1;
+  min-inline-size: 34px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--tag-color) 54%, white 18%);
+  border-radius: 9px;
+  color: color-mix(in srgb, white 92%, var(--tag-color));
+  background: color-mix(in srgb, var(--tag-color) 82%, var(--color-surface) 18%);
+  box-shadow: none;
+  transition: transform var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.keepit-appearance-swatch:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--tag-color) 78%, white 20%);
+  box-shadow: 0 3px 8px color-mix(in srgb, var(--tag-color) 20%, transparent);
+}
+
+.keepit-appearance-swatch:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.keepit-appearance-swatch[aria-pressed="true"] {
+  border-color: var(--color-text);
+  box-shadow: 0 0 0 2px var(--color-surface), 0 0 0 4px color-mix(in srgb, var(--tag-color) 58%, transparent);
+}
+
+.keepit-appearance-swatch .keepit-appearance-glyph {
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1;
+  color: color-mix(in srgb, white 92%, var(--tag-color));
+  pointer-events: none;
+}
+.keepit-appearance-swatch[data-appearance="star"] .keepit-appearance-glyph,
+.keepit-appearance-swatch[data-appearance="flower"] .keepit-appearance-glyph { font-size: 16px; }
+
+@media (max-width: 480px) {
+  .color-picker { grid-template-columns: repeat(4, minmax(34px, 1fr)); }
+}

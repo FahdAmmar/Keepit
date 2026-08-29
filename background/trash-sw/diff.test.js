@@ -44,6 +44,16 @@ describe("KeepitTrashDiff.computeDeletions", () => {
     });
   });
 
+  it("نقل موقع إلى تصنيف آخر لا يُبلَّغ كحذف زائف", () => {
+    const oldState = {
+      collections: [col("c1", "المصدر", [item("i1"), item("i2")]), col("c2", "الهدف")],
+    };
+    const newState = {
+      collections: [col("c1", "المصدر", [item("i1")]), col("c2", "الهدف", [item("i2")])],
+    };
+    expect(Diff.computeDeletions(oldState, newState)).toEqual([]);
+  });
+
   it(
     "إعادة ترتيب بحتة (نفس المعرّفات، ترتيب مصفوفة مختلف) لا تُنتج أي حذف زائف — " +
       "هذا بالضبط الضمان الذي اعتمدت عليه item-manager/store.js#reorderItems لأمانها",

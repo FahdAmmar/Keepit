@@ -1,0 +1,106 @@
+/*
+ * حواجز تخطيط النافذة المنبثقة.
+ * لا تُبدّل الهوية البصرية الأساسية؛ بل تمنع الانهيار عندما يقيّد المتصفح
+ * مساحة نافذة الإضافة أو عندما تكون الشاشة صغيرة.
+ */
+html,
+body {
+  /* Chrome يستنتج عرض popup من محتواها. استعمال 100vw هنا يكوّن حلقة:
+     يبدأ العرض صغيرًا ثم يُستخدم هذا العرض الصغير لحجم المحتوى. العرض
+     الثابت يمنح Chrome قياسًا موثوقًا عند النقر على الأيقونة. */
+  width: 384px;
+  min-width: 384px;
+  max-width: 384px;
+  height: 560px;
+  min-height: 560px;
+  max-height: 600px;
+  overflow: hidden;
+}
+
+/* تضمن مساحة #app الثابتة أن يأخذ Chrome القياس النهائي قبل أن يضيف
+   main.js عناصره، فلا تظهر نافذة بعرض صحيح وارتفاع صغير جدًا. */
+#app {
+  width: 384px;
+  min-height: 560px;
+}
+
+.popup {
+  width: 100%;
+  min-width: 0;
+  /* لا نستخدم 0 أو 100vh هنا؛ نافذة الامتداد تستنتج ارتفاعها من المحتوى.
+     الحد الثابت يمنع ظهور مربع قصير عند النقر على الأيقونة. */
+  min-height: 420px;
+  max-height: 600px;
+}
+
+.popup__header {
+  min-width: 0;
+  padding: 10px 12px;
+}
+
+.popup__brand,
+.popup__header-actions,
+.popup__content,
+.quick-add,
+.quick-add__tab,
+.quick-add__row,
+.collection-row,
+.collection-row__main {
+  min-width: 0;
+}
+
+.popup__title,
+.quick-add__tab-title,
+.collection-row__name,
+.item-row__title,
+.item-row__host {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.popup__content {
+  padding: 10px 12px 14px;
+  gap: 10px;
+  overscroll-behavior: contain;
+}
+
+/* خيار الفرز متاح في صفحة الإعدادات؛ إخفاؤه هنا يحمي الواجهة اليومية
+   من تكرار أدوات التحكم ويمنع ازدحام رأس قسم المجموعات. */
+.popup .keepit-collection-view-control {
+  display: none;
+}
+
+.popup .keepit-collection-list--sorted::before {
+  content: "";
+  display: block;
+  height: 0;
+}
+
+.quick-add {
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.quick-add__row .btn--primary {
+  flex: 0 0 auto;
+}
+
+.collection-row__main {
+  min-height: 42px;
+  padding-block: 9px;
+}
+
+.collection-row__actions {
+  flex-shrink: 0;
+}
+
+@media (max-width: 330px) {
+  .popup__header { padding-inline: 8px; }
+  .popup__content { padding-inline: 8px; }
+  .quick-add__row { flex-wrap: wrap; }
+  .quick-add__select { flex-basis: 100%; }
+  .quick-add__row .btn--primary { width: 100%; }
+  .popup__header-actions { gap: 0; }
+  .btn--icon { width: 30px; height: 30px; }
+}

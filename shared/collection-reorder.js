@@ -7,6 +7,7 @@
  * المقبض يدعم لوحة المفاتيح بالكامل كبديل عند عدم وجود مؤشّر دقيق.
  */
 import { KEEPIT_STATE_KEY, saveCollectionOrder } from "./collection-order-store.js";
+import { COLLECTION_VIEW_KEY, COLLECTION_SORT_MODES, normalizeCollectionView } from "./collection-view.js";
 
 const LIST_SELECTOR = ".collection-list, .options__collections";
 const ROW_SELECTOR = ":scope > .collection-row";
@@ -309,7 +310,7 @@ async function synchronizeList(list) {
   if (rows.length === 0) return;
 
   const raw = /** @type {Record<string, {collections?: Array<any>} | undefined>} */ (
-    await chrome.storage.local.get(KEEPIT_STATE_KEY)
+    await chrome.storage.local.get([KEEPIT_STATE_KEY, COLLECTION_VIEW_KEY])
   );
   if (!list.isConnected) return;
   const collections = Array.isArray(raw[KEEPIT_STATE_KEY]?.collections) ? raw[KEEPIT_STATE_KEY].collections : [];
@@ -323,6 +324,15 @@ async function synchronizeList(list) {
     row.dataset.keepitCollectionId = collection.id;
     if (!row.querySelector(`.${HANDLE_CLASS}`)) createHandle(row);
   }
+
+  // شاشة عرض المجموعات (collection-view-ui.js) تتولى ترتيب الصفوف بنفسها
+  // كلما اختار المستخدم نمط فرز غير يدوي. فرض ترتيبنا الخام هنا أيضًا في
+  // تلك الحالة يعني أن كل وحدة تُعيد ترتيب الصفوف فتُبطل ترتيب الأخرى، وكل
+  // مرة تُشغِّل MutationObserver الخاص بالوحدة الأخرى من جديد — حلقة لا
+  // نهائية من إعادة الترتيب تظهر للمستخدم كوميض مستمر في قائمة المجموعات.
+  // الحل: لا نفرض الترتيب اليدوي إلا عندما يكون هو النمط الفعلي المختار.
+  const view = normalizeCollectionView(raw[COLLECTION_VIEW_KEY]);
+  if (view.sortMode !== COLLECTION_SORT_MODES.MANUAL) return;
 
   const orderIndex = new Map(collections.map((collection, index) => [collection?.id, index]));
   const sortableRows = getRows(list);
@@ -352,7 +362,7 @@ function mount() {
   scheduleRefresh();
   new MutationObserver(scheduleRefresh).observe(document.body, { childList: true, subtree: true });
   chrome.storage.onChanged.addListener((changes, areaName) => {
-    if (areaName === "local" && changes[KEEPIT_STATE_KEY]) scheduleRefresh();
+    if (areaName === "local" && (changes[KEEPIT_STATE_KEY] || changes[COLLECTION_VIEW_KEY])) scheduleRefresh();
   });
 }
 

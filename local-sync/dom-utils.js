@@ -46,20 +46,27 @@ export function waitForElement(selector, { root = document, timeoutMs = 15000 } 
 }
 
 /**
- * يُعيد إلحاق عنصر (عادة زر تفعيل لوحة) بأول عنصر يطابق selector إن كان
- * قد انفصل عن المستند. صفحة الخيارات تُعيد بناء شريط الأدوات (main.js،
- * الحزمة الأصلية) عند تبديل اللغة (عربي/إنجليزي) — إعادة بناء تُنشئ عنصر
- * DOM **جديدًا بالكامل** بنفس الصنف .options__topbar-actions، لا تُعدّل
- * العنصر القديم في مكانه. أي زر أُلحق يدويًا بالعنصر القديم (كأزرار سلة
- * المحذوفات والنسخ الاحتياطي والمزامنة المحلية وجسر الإشارات المرجعية)
- * يبقى موجودًا في الذاكرة لكن يصبح غير متصل بالمستند (والده القديم لم
- * يعد جزءًا من الصفحة)، فيختفي بصريًا بصمت.
+ * يُبقي عنصرًا (عادة زر تفعيل لوحة) مُلحَقًا بأول عنصر يطابق selector،
+ * حتى لو انفصل عن المستند لاحقًا. صفحة الخيارات تُعيد بناء شريط الأدوات
+ * (main.js، الحزمة الأصلية) عند تبديل اللغة **أو** الوضع الليلي/النهاري —
+ * كلاهما يستدعي دالة عرض شريط الأدوات نفسها، فتُنشئ عنصر DOM **جديدًا
+ * بالكامل** بنفس الصنف .options__topbar-actions بدل تعديل القديم في
+ * مكانه. أي زر أُلحق يدويًا بالعنصر القديم يبقى موجودًا في الذاكرة لكن
+ * يصبح غير متصل بالمستند، فيختفي بصريًا بصمت.
  *
- * عمدًا **بلا** مراقب DOM دائم: تكلفة أداء غير مبرَّرة لحدث نادر كتبديل
- * اللغة. الاستدعاء الصحيح هو من داخل معالج chrome.storage.onChanged
- * لـ keepit:locale الموجود أصلاً في كل لوحة لسبب آخر (تحديث نصوصها
- * المترجمة) — فلا تكلفة إضافية تُذكر، ونفس اللحظة بالضبط التي يُعاد فيها
- * بناء شريط الأدوات.
+ * **لماذا مراقب DOM دائم، لا معالج storage.onChanged**: المحاولة الأولى
+ * كانت استدعاء إعادة الإلحاق من داخل معالج chrome.storage.onChanged
+ * لمفتاحي keepit:locale وkeepit:theme (نفس اللحظة منطقيًا التي يُعاد فيها
+ * بناء الشريط). تَحقّقنا عمليًا في متصفح Chromium حقيقي (لا محاكاة) أن
+ * هذا الافتراض خاطئ: حدث storage.onChanged يصل إلى مستمعي نفس الصفحة
+ * التي كتبت القيمة **قبل** أن ينتهي `.then(re)` من إعادة بناء الشريط، لا
+ * بعده — فيجد المعالج الزر لا يزال متصلًا (لا شيء لإصلاحه)، ثم يُعاد بناء
+ * الشريط بعد ذلك بلا أي حدث لاحق يُصلحه. النتيجة: الزر يختفي فعليًا رغم
+ * وجود معالجة "صحيحة" ظاهريًا لكلا المفتاحين. الحل الوحيد الموثوق هو
+ * مراقبة التغيير في DOM نفسه، لا حدث تخزين يُفترض أنه يتزامن معه.
+ *
+ * التكلفة محدودة عمدًا: مراقب واحد **مشترك** بين كل استدعاءات هذه الدالة
+ * (بغض النظر عن عدد اللوحات)، لا مراقب منفصل لكل لوحة.
  *
  * @param {string} selector
  * @param {HTMLElement} el - نفس مرجع العنصر دائمًا؛ لا يُعاد بناؤه هنا، فقط
@@ -67,11 +74,29 @@ export function waitForElement(selector, { root = document, timeoutMs = 15000 } 
  * @param {(container: Element, el: HTMLElement) => void} [insert] - استراتيجية
  *   الإلحاق (افتراضيًا append)؛ مرِّر (c, el) => c.prepend(el) للوحات التي
  *   تعتمد ترتيبًا محددًا لزرها ضمن الشريط.
+ * @returns {() => void} دالة لإيقاف المراقبة لهذا العنصر تحديدًا (نادرًا ما
+ *   تُستخدَم، لأن أزرار اللوحات تعيش طوال عمر الصفحة).
  */
-export async function reattachIfDetached(selector, el, insert = (container, element) => container.append(element)) {
-  if (el.isConnected) return;
-  const container = await waitForElement(selector);
-  if (container && !container.contains(el)) insert(container, el);
+let sharedTopbarObserver = null;
+const topbarWatchers = new Set();
+
+function ensureSharedTopbarObserver() {
+  if (sharedTopbarObserver) return;
+  sharedTopbarObserver = new MutationObserver(() => {
+    for (const tryReattach of topbarWatchers) tryReattach();
+  });
+  sharedTopbarObserver.observe(document.body, { childList: true, subtree: true });
+}
+
+export function keepAttached(selector, el, insert = (container, element) => container.append(element)) {
+  const tryReattach = () => {
+    if (el.isConnected) return;
+    const container = document.querySelector(selector);
+    if (container && !container.contains(el)) insert(container, el);
+  };
+  topbarWatchers.add(tryReattach);
+  ensureSharedTopbarObserver();
+  return () => topbarWatchers.delete(tryReattach);
 }
 
 const FOCUSABLE_SELECTOR =

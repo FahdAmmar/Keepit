@@ -27,7 +27,7 @@ function decorateCollectionDots() {
   }
 }
 
-function decorateColorPickers() {
+export function decorateColorPickers() {
   for (const element of document.querySelectorAll(".color-picker__swatch[data-color]")) {
     const swatch = /** @type {HTMLElement} */ (element);
     const color = swatch.dataset.color;
@@ -43,7 +43,11 @@ function decorateColorPickers() {
       glyph.setAttribute("aria-hidden", "true");
       swatch.append(glyph);
     }
-    glyph.textContent = appearance.glyph;
+    // Only touch textContent when it actually needs to change: writing it
+    // unconditionally re-triggers the MutationObserver below on every run
+    // (even when the value is unchanged), which schedules another run and
+    // freezes the page in an infinite loop.
+    if (glyph.textContent !== appearance.glyph) glyph.textContent = appearance.glyph;
   }
 }
 

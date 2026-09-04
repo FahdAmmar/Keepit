@@ -38,6 +38,7 @@ server, and no one but you ever has access to what you've saved.
 - Color-coded collections (Indigo, Sky, Violet, Emerald, Amber, Rose, Slate) so you can tell categories apart at a glance.
 - Pin important collections to the top.
 - Add text notes to any saved site.
+- Move a saved site to a different collection with one click, right from its own row — no need to delete and re-save it.
 - Search across everything you've saved — matching **collection names** surfaces the whole collection (with an inline preview of its sites), not just individual sites whose title, URL, or note happens to match.
 
 ### ⚡ Save from anywhere, instantly

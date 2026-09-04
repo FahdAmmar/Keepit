@@ -1053,6 +1053,13 @@
             deleteItemAriaLabel: '\u062D\u0630\u0641 "{title}"',
             editNoteDialogTitle: "\u062A\u0639\u062F\u064A\u0644 \u0627\u0644\u0645\u0644\u0627\u062D\u0638\u0629",
             editNoteLabel: '\u0645\u0644\u0627\u062D\u0638\u0629 \u0639\u0644\u0649 "{title}"',
+            moveItemAriaLabel: 'نقل "{title}"',
+            moveItemDialogTitle: "نقل الموقع",
+            moveItemTargetLabel: "نقل إلى",
+            moveItemConfirmAction: "نقل",
+            moveItemNoOtherCollections: "لا توجد مجموعة أخرى للنقل إليها",
+            toastItemMoved: 'تم نقل الموقع إلى "{name}"',
+            toastItemMoveFailed: "تعذر نقل الموقع",
             toastItemAdded: "\u062A\u0645\u062A \u0627\u0644\u0625\u0636\u0627\u0641\u0629 \u0625\u0644\u0649 \u0627\u0644\u0645\u062C\u0645\u0648\u0639\u0629",
             toastItemAddFailed: "\u062A\u0639\u0630\u0651\u0631\u062A \u0627\u0644\u0625\u0636\u0627\u0641\u0629",
             toastCollectionCreated: "\u062A\u0645 \u0625\u0646\u0634\u0627\u0621 \u0627\u0644\u0645\u062C\u0645\u0648\u0639\u0629",
@@ -1172,6 +1179,13 @@
             deleteItemAriaLabel: 'Delete "{title}"',
             editNoteDialogTitle: "Edit note",
             editNoteLabel: 'Note on "{title}"',
+            moveItemAriaLabel: 'Move "{title}"',
+            moveItemDialogTitle: "Move site",
+            moveItemTargetLabel: "Move to",
+            moveItemConfirmAction: "Move",
+            moveItemNoOtherCollections: "There's no other collection to move this to",
+            toastItemMoved: 'Moved to "{name}"',
+            toastItemMoveFailed: "Couldn't move the item",
             toastItemAdded: "Added to collection",
             toastItemAddFailed: "Couldn't add item",
             toastCollectionCreated: "Collection created",
@@ -1410,6 +1424,24 @@
             ...i,
             order: l
         })), r.updatedAt = Date.now(), await z(o)
+    }
+    // Moves one item from one collection to another (same duplicate-order
+    // bookkeeping as ot() above, plus appending into the target's items).
+    async function moveItemToCollection(t, e, o) {
+        let r = await P(),
+            i = oe(r, t),
+            l = oe(r, o),
+            m = i.items.find(g => g.id === e);
+        if (!m) throw new $(a("serviceItemNotFound"));
+        i.items = i.items.filter(g => g.id !== e).map((g, d) => ({
+            ...g,
+            order: d
+        })), l.items = [...l.items, {
+            ...m,
+            order: l.items.length
+        }];
+        let now = Date.now();
+        return i.updatedAt = now, l.updatedAt = now, await z(r), l
     }
     var ke = ["#5B8DEF", "#8B7CF6", "#4FB8D0", "#4CAF7D", "#E0A63E", "#E2685C", "#7C8DB5"];
 
@@ -2198,7 +2230,16 @@
                 })
             },
             onClick: () => t.onEditNote?.()
-        }, [v("pencil")])), i.push(n("button", {
+        }, [v("pencil")])), t.onMove && i.push(n("button", {
+            type: "button",
+            className: "btn btn--icon",
+            attrs: {
+                "aria-label": a("moveItemAriaLabel", {
+                    title: e.title
+                })
+            },
+            onClick: () => t.onMove?.()
+        }, [v("folderOpen")])), i.push(n("button", {
             type: "button",
             className: "btn btn--icon",
             attrs: {
@@ -2253,7 +2294,8 @@
         }, [...e.items].sort((i, l) => i.order - l.order).map(i => ue({
             item: i,
             onDelete: () => t.onDeleteItem(i.id),
-            onEditNote: () => t.onEditItemNote(i.id)
+            onEditNote: () => t.onEditItemNote(i.id),
+            onMove: () => t.onMoveItem(i.id)
         })));
         return n("div", {
             className: "collection-detail"
@@ -2289,7 +2331,8 @@
         })]), ue({
             item: e,
             onDelete: () => t.onDeleteItem(o.id, e.id),
-            onEditNote: () => t.onEditItemNote(o.id, e.id)
+            onEditNote: () => t.onEditItemNote(o.id, e.id),
+            onMove: () => t.onMoveItem(o.id, e.id)
         })])))])
     }
 
@@ -2471,7 +2514,8 @@
             query: y.searchQuery.trim(),
             matches: ao(y.searchQuery),
             onDeleteItem: (e, o) => void Tt(e, o),
-            onEditItemNote: (e, o) => Lt(e, o)
+            onEditItemNote: (e, o) => Lt(e, o),
+            onMoveItem: (e, o) => openMoveItemDialog(e, o)
         });
         let t = y.collections.find(e => e.id === y.selectedCollectionId);
         return t ? wt({
@@ -2480,7 +2524,8 @@
             onExport: () => go(t),
             onDeleteCollection: () => void It(t),
             onDeleteItem: e => void Tt(t.id, e),
-            onEditItemNote: e => Lt(t.id, e)
+            onEditItemNote: e => Lt(t.id, e),
+            onMoveItem: e => openMoveItemDialog(t.id, e)
         }) : X({
             iconName: "folderOpen",
             title: a("noCollectionSelectedTitle"),
@@ -2566,6 +2611,60 @@
             onSave: i => {
                 tt(t, e, i).then(() => R.show(a("toastNoteSaved"), "success")).catch(l => R.show(l instanceof Error ? l.message : a("toastNoteSaveFailed"), "error"))
             }
+        })
+    }
+    // Opens a small "move to..." dialog for one saved item (mirrors Lt()
+    // above for the note dialog: look the item up by id, guard, then build).
+    function openMoveItemDialog(t, e) {
+        let o = y.collections.find(g => g.id === t),
+            r = o?.items.find(g => g.id === e);
+        if (!o || !r) return;
+        let targets = y.collections.filter(g => g.id !== t);
+        if (targets.length === 0) {
+            R.show(a("moveItemNoOtherCollections"), "error");
+            return
+        }
+        let select = n("select", {
+                className: "input",
+                id: "move-item-target-select"
+            }, targets.map(g => n("option", {
+                attrs: {
+                    value: g.id
+                }
+            }, [g.name]))),
+            form = n("form", {
+                className: "collection-form"
+            }, [n("div", {
+                className: "field"
+            }, [n("label", {
+                className: "field__label",
+                htmlFor: "move-item-target-select"
+            }, [a("moveItemTargetLabel")]), select]), n("div", {
+                className: "dialog__actions"
+            }, [n("button", {
+                type: "button",
+                className: "btn btn--secondary",
+                onClick: () => dialog.close()
+            }, [a("cancel")]), n("button", {
+                type: "submit",
+                className: "btn btn--primary"
+            }, [a("moveItemConfirmAction")])])]);
+        form.addEventListener("submit", i => {
+            i.preventDefault();
+            (async () => {
+                try {
+                    let target = await moveItemToCollection(t, e, select.value);
+                    dialog.close(), R.show(a("toastItemMoved", {
+                        name: target.name
+                    }), "success")
+                } catch (l) {
+                    R.show(l instanceof Error ? l.message : a("toastItemMoveFailed"), "error")
+                }
+            })()
+        });
+        var dialog = U(document.body, {
+            title: a("moveItemDialogTitle"),
+            body: form
         })
     }
     var mo = 8;

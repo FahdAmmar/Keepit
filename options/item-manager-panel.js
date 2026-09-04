@@ -22,7 +22,7 @@
  * غير متناسب هنا). أزرار "لأعلى/لأسفل" توفّر مسارًا كامل الإتاحة موازيًا،
  * لا بديلاً تجميليًا — نفس مبدأ باقي هذه الجلسة (WCAG 2.4.3 وما تلاه).
  */
-import { waitForElement, openAccessibleDialog, showToast, rerenderPreservingFocus, reattachIfDetached } from "../local-sync/dom-utils.js";
+import { waitForElement, openAccessibleDialog, showToast, rerenderPreservingFocus, keepAttached } from "../local-sync/dom-utils.js";
 import { isSafeFaviconUrl } from "../shared/safe-favicon.js";
 import { readCollections, reorderItems, deleteItems, moveItems } from "../item-manager/store.js";
 import { t, resolveLocale } from "../item-manager/i18n.js";
@@ -68,7 +68,6 @@ async function init() {
     if (KEEPIT_LOCALE_KEY in changes) {
       currentLocale = resolveLocale(changes[KEEPIT_LOCALE_KEY].newValue);
       updateTriggerAria();
-      if (triggerBtnEl) void reattachIfDetached(".options__topbar-actions", triggerBtnEl);
     }
     if (KEEPIT_STATE_KEY in changes) {
       activeDialogRefresh?.();
@@ -88,6 +87,7 @@ function mountTriggerButton(container) {
   triggerBtnEl.addEventListener("click", openPanel);
   updateTriggerAria();
   container.append(triggerBtnEl);
+  keepAttached(".options__topbar-actions", triggerBtnEl);
 }
 
 function updateTriggerAria() {

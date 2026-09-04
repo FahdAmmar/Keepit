@@ -15,7 +15,7 @@
  * مسؤول فقط عن الواجهة والتحكم — بنفس فصل الاهتمامات المتّبع في كل لوحة
  * أخرى بالمشروع.
  */
-import { waitForElement, openAccessibleDialog, showToast, rerenderPreservingFocus, reattachIfDetached } from "../local-sync/dom-utils.js";
+import { waitForElement, openAccessibleDialog, showToast, rerenderPreservingFocus, keepAttached } from "../local-sync/dom-utils.js";
 import {
   readFoldersForPicker,
   readNormalizedCollectionsFromFolder,
@@ -54,10 +54,6 @@ async function init() {
     if (KEEPIT_LOCALE_KEY in changes) {
       currentLocale = resolveLocale(changes[KEEPIT_LOCALE_KEY].newValue);
       updateTriggerAria();
-      // صفحة الخيارات تُعيد بناء شريط الأدوات (عنصر DOM جديد بالكامل) عند
-      // تبديل اللغة، فيُفصَل زرّنا المُلحَق يدويًا بالعنصر القديم عن
-      // المستند بصمت — راجع تعليق reattachIfDetached في dom-utils.js.
-      if (triggerBtnEl) void reattachIfDetached(".options__topbar-actions", triggerBtnEl);
     }
     if (KEEPIT_STATE_KEY in changes || KEEPIT_LOCALE_KEY in changes) {
       activeDialogRefresh?.();
@@ -77,6 +73,7 @@ function mountTriggerButton(container) {
   triggerBtnEl.addEventListener("click", openPanel);
   updateTriggerAria();
   container.append(triggerBtnEl);
+  keepAttached(".options__topbar-actions", triggerBtnEl);
 }
 
 function updateTriggerAria() {

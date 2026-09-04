@@ -9,7 +9,7 @@
  * كل القراءة/الكتابة الفعلية تمر عبر snapshots/store.js؛ هذا الملف مسؤول
  * فقط عن الواجهة والتحكم.
  */
-import { waitForElement, openAccessibleDialog, showToast, rerenderPreservingFocus, reattachIfDetached } from "../local-sync/dom-utils.js";
+import { waitForElement, openAccessibleDialog, showToast, rerenderPreservingFocus, keepAttached } from "../local-sync/dom-utils.js";
 import { confirmDestructive } from "../shared/confirm-dialog.js";
 import { formatRelativeTime, formatAbsoluteDateTime } from "../shared/format-time.js";
 import {
@@ -72,7 +72,6 @@ function handleStorageChange(changes, areaName) {
     currentLocale = resolveLocale(changes[KEEPIT_LOCALE_KEY].newValue);
     updateTriggerAria();
     activeDialogRefresh?.();
-    if (triggerBtnEl) void reattachIfDetached(".options__topbar-actions", triggerBtnEl);
   }
 }
 
@@ -88,6 +87,7 @@ function mountTriggerButton(container) {
   triggerBtnEl.addEventListener("click", openPanel);
   updateTriggerAria();
   container.append(triggerBtnEl);
+  keepAttached(".options__topbar-actions", triggerBtnEl);
 }
 
 function updateTriggerAria() {

@@ -1057,6 +1057,13 @@
             deleteItemAriaLabel: '\u062D\u0630\u0641 "{title}"',
             editNoteDialogTitle: "\u062A\u0639\u062F\u064A\u0644 \u0627\u0644\u0645\u0644\u0627\u062D\u0638\u0629",
             editNoteLabel: '\u0645\u0644\u0627\u062D\u0638\u0629 \u0639\u0644\u0649 "{title}"',
+            moveItemAriaLabel: 'نقل "{title}"',
+            moveItemDialogTitle: "نقل الموقع",
+            moveItemTargetLabel: "نقل إلى",
+            moveItemConfirmAction: "نقل",
+            moveItemNoOtherCollections: "لا توجد مجموعة أخرى للنقل إليها",
+            toastItemMoved: 'تم نقل الموقع إلى "{name}"',
+            toastItemMoveFailed: "تعذر نقل الموقع",
             toastItemAdded: "\u062A\u0645\u062A \u0627\u0644\u0625\u0636\u0627\u0641\u0629 \u0625\u0644\u0649 \u0627\u0644\u0645\u062C\u0645\u0648\u0639\u0629",
             toastItemAddFailed: "\u062A\u0639\u0630\u0651\u0631\u062A \u0627\u0644\u0625\u0636\u0627\u0641\u0629",
             toastCollectionCreated: "\u062A\u0645 \u0625\u0646\u0634\u0627\u0621 \u0627\u0644\u0645\u062C\u0645\u0648\u0639\u0629",
@@ -1180,6 +1187,13 @@
             deleteItemAriaLabel: 'Delete "{title}"',
             editNoteDialogTitle: "Edit note",
             editNoteLabel: 'Note on "{title}"',
+            moveItemAriaLabel: 'Move "{title}"',
+            moveItemDialogTitle: "Move site",
+            moveItemTargetLabel: "Move to",
+            moveItemConfirmAction: "Move",
+            moveItemNoOtherCollections: "There's no other collection to move this to",
+            toastItemMoved: 'Moved to "{name}"',
+            toastItemMoveFailed: "Couldn't move the item",
             toastItemAdded: "Added to collection",
             toastItemAddFailed: "Couldn't add item",
             toastCollectionCreated: "Collection created",
@@ -1363,6 +1377,20 @@
             };
         return i.collections.push(s), i.lastUsedCollectionId = s.id, await H(i), s
     }
+    // Rename a collection (validates + rejects duplicate names, same rules as creation).
+    async function renameCollection(t, e) {
+        let o = Me(e);
+        if (!o.valid || !o.value) throw new N(o.error ?? n("genericInvalidValue"));
+        let i = await M(),
+            a = Fe(i, t);
+        if (globalThis.KeepitDedup && globalThis.KeepitDedup.findDuplicateCollection(i.collections, o.value, t)) throw new N(n("serviceDuplicateCollectionName"));
+        return a.name = o.value, a.updatedAt = Date.now(), await H(i), a
+    }
+    async function setCollectionColor(t, e) {
+        let o = await M(),
+            i = Fe(o, t);
+        return i.color = e, i.updatedAt = Date.now(), await H(o), i
+    }
     async function Ue(t) {
         let e = await M();
         e.collections = e.collections.filter(o => o.id !== t), e.lastUsedCollectionId === t && (e.lastUsedCollectionId = null), await H(e)
@@ -1400,6 +1428,24 @@
             ...a,
             order: s
         })), i.updatedAt = Date.now(), await H(o)
+    }
+    // Moves one item from one collection to another (mirrors Ke() above,
+    // plus appending into the target's items).
+    async function moveItemToCollection(t, e, o) {
+        let r = await M(),
+            i = Fe(r, t),
+            l = Fe(r, o),
+            m = i.items.find(g => g.id === e);
+        if (!m) throw new N(n("serviceItemNotFound"));
+        i.items = i.items.filter(g => g.id !== e).map((g, d) => ({
+            ...g,
+            order: d
+        })), l.items = [...l.items, {
+            ...m,
+            order: l.items.length
+        }];
+        let now = Date.now();
+        return i.updatedAt = now, l.updatedAt = now, await H(r), l
     }
     var ze = te(q(), 1);
     async function Ve() {
@@ -1653,7 +1699,16 @@
                 })
             },
             onClick: () => t.onEditNote?.()
-        }, [v("pencil")])), a.push(r("button", {
+        }, [v("pencil")])), t.onMove && a.push(r("button", {
+            type: "button",
+            className: "btn btn--icon",
+            attrs: {
+                "aria-label": n("moveItemAriaLabel", {
+                    title: e.title
+                })
+            },
+            onClick: () => t.onMove?.()
+        }, [v("folderOpen")])), a.push(r("button", {
             type: "button",
             className: "btn btn--icon",
             attrs: {
@@ -2143,7 +2198,8 @@
             collection: a.name
         })]), Ye({
             item: o,
-            onDelete: () => void Rt(a.id, o.id)
+            onDelete: () => void Rt(a.id, o.id),
+            onMove: () => openMoveItemDialog(a.id, o.id)
         })])))])
     }
 
@@ -2181,8 +2237,38 @@
                     name: "detail",
                     collectionId: e.id
                 }, D()
-            }
+            },
+            actions: [{
+                iconName: "pencil",
+                label: n("editCollectionAction"),
+                onClick: () => openEditCollectionDialog(e)
+            }]
         }))))
+    }
+    // Opens the rename/recolor dialog for a collection (mirrors the create-collection dialog in rt()).
+    function openEditCollectionDialog(t) {
+        let e = Je({
+                initialName: t.name,
+                initialColor: t.color,
+                submitLabel: n("saveChangesAction"),
+                onSubmit: ({
+                    name: i,
+                    color: a
+                }) => {
+                    (async () => {
+                        try {
+                            await renameCollection(t.id, i), await setCollectionColor(t.id, a), o.close(), F.show(n("toastCollectionSaved"), "success")
+                        } catch (s) {
+                            F.show(s instanceof Error ? s.message : n("toastCollectionSaveFailed"), "error")
+                        }
+                    })()
+                },
+                onCancel: () => o.close()
+            }),
+            o = W(document.body, {
+                title: n("editCollectionTitle"),
+                body: e
+            })
     }
 
     function It(t) {
@@ -2239,7 +2325,8 @@
                 className: "item-list"
             }, [...e.items].sort((s, p) => s.order - p.order).map(s => Ye({
                 item: s,
-                onDelete: () => void Rt(e.id, s.id)
+                onDelete: () => void Rt(e.id, s.id),
+                onMove: () => openMoveItemDialog(e.id, s.id)
             })));
         return r("div", {
             className: "screen screen--detail"
@@ -2303,6 +2390,57 @@
     }
     async function Rt(t, e) {
         await Ke(t, e), F.show(n("toastItemDeleted"), "success")
+    }
+    // Opens a small "move to..." dialog for one saved item (mirrors the
+    // create/edit-collection dialogs above: a small form inside W()).
+    function openMoveItemDialog(t, e) {
+        let targets = m.collections.filter(g => g.id !== t);
+        if (targets.length === 0) {
+            F.show(n("moveItemNoOtherCollections"), "error");
+            return
+        }
+        let select = r("select", {
+                className: "input",
+                id: "move-item-target-select"
+            }, targets.map(g => r("option", {
+                attrs: {
+                    value: g.id
+                }
+            }, [g.name]))),
+            form = r("form", {
+                className: "collection-form"
+            }, [r("div", {
+                className: "field"
+            }, [r("label", {
+                className: "field__label",
+                htmlFor: "move-item-target-select"
+            }, [n("moveItemTargetLabel")]), select]), r("div", {
+                className: "dialog__actions"
+            }, [r("button", {
+                type: "button",
+                className: "btn btn--secondary",
+                onClick: () => dialog.close()
+            }, [n("cancel")]), r("button", {
+                type: "submit",
+                className: "btn btn--primary"
+            }, [n("moveItemConfirmAction")])])]);
+        form.addEventListener("submit", i => {
+            i.preventDefault();
+            (async () => {
+                try {
+                    let target = await moveItemToCollection(t, e, select.value);
+                    dialog.close(), F.show(n("toastItemMoved", {
+                        name: target.name
+                    }), "success")
+                } catch (l) {
+                    F.show(l instanceof Error ? l.message : n("toastItemMoveFailed"), "error")
+                }
+            })()
+        });
+        var dialog = W(document.body, {
+            title: n("moveItemDialogTitle"),
+            body: form
+        })
     }
     async function Dt() {
         Z = await $e(() => U()), Y = await Ne(() => {

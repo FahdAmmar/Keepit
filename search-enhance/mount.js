@@ -193,6 +193,7 @@ function buildCollectionRow(collection, locale) {
   const nameEl = document.createElement("span");
   nameEl.className = "collection-row__name";
   nameEl.textContent = collection.name;
+  nameEl.title = collection.name;
 
   const countEl = document.createElement("span");
   countEl.className = "count-badge";

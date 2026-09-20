@@ -199,11 +199,39 @@
     return { merged: merged, skippedItems: skippedItems, skippedCollections: skippedCollections };
   }
 
+  /**
+   * يبحث عن أول مجموعة (غير المستبعدة) تحوي عنصرًا بنفس الرابط (بعد
+   * التطبيع)، بغض النظر عن أي مجموعة ينتمي إليها العنصر أصلًا. على عكس
+   * findDuplicateItem أعلاه (يفحص داخل مصفوفة عناصر مجموعة واحدة فقط)،
+   * هذه تفحص عبر كل المجموعات — للتنبيه فقط، لا للمنع؛ حفظ نفس الرابط في
+   * أكثر من مجموعة اختيار مشروع للمستخدم.
+   * @param {Array} collections - كل المجموعات
+   * @param {string} url - الرابط المراد فحصه
+   * @param {string=} excludeCollectionId - معرّف مجموعة يُستبعَد من الفحص
+   *   (عادة المجموعة الهدف نفسها، التي يُغطّيها findDuplicateItem أصلًا)
+   * @returns {{collection: object, item: object}|null}
+   */
+  function findItemAcrossCollections(collections, url, excludeCollectionId) {
+    var key = normalizeUrl(url);
+    if (!key) return null;
+    if (!Array.isArray(collections)) return null;
+    for (var i = 0; i < collections.length; i++) {
+      var c = collections[i];
+      if (excludeCollectionId && c.id === excludeCollectionId) continue;
+      if (!Array.isArray(c.items)) continue;
+      for (var j = 0; j < c.items.length; j++) {
+        if (normalizeUrl(c.items[j].url) === key) return { collection: c, item: c.items[j] };
+      }
+    }
+    return null;
+  }
+
   globalThis.KeepitDedup = {
     normalizeName: normalizeName,
     normalizeUrl: normalizeUrl,
     findDuplicateCollection: findDuplicateCollection,
     findDuplicateItem: findDuplicateItem,
+    findItemAcrossCollections: findItemAcrossCollections,
     mergeCollections: mergeCollections
   };
 

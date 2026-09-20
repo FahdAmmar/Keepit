@@ -77,6 +77,7 @@ export function waitForElement(selector, { root = document, timeoutMs = 15000 } 
  * @returns {() => void} دالة لإيقاف المراقبة لهذا العنصر تحديدًا (نادرًا ما
  *   تُستخدَم، لأن أزرار اللوحات تعيش طوال عمر الصفحة).
  */
+/** @type {MutationObserver | null} */
 let sharedTopbarObserver = null;
 const topbarWatchers = new Set();
 

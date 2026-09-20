@@ -38,6 +38,37 @@ describe("KeepitDedup.normalizeUrl", () => {
   });
 });
 
+describe("KeepitDedup.findItemAcrossCollections", () => {
+  const collections = [
+    { id: "c1", name: "A", items: [{ id: "i1", url: "https://example.com/page" }] },
+    { id: "c2", name: "B", items: [{ id: "i2", url: "https://other.com/x" }] },
+  ];
+
+  it("يجد الرابط في مجموعة أخرى ويعيد المجموعة والعنصر معًا", () => {
+    const result = Dedup.findItemAcrossCollections(collections, "https://example.com/page");
+    expect(result?.collection.id).toBe("c1");
+    expect(result?.item.id).toBe("i1");
+  });
+
+  it("يطابق بعد التطبيع (www.، fragment، معاملات تتبّع)", () => {
+    const result = Dedup.findItemAcrossCollections(collections, "https://www.example.com/page?utm_source=x#top");
+    expect(result?.collection.id).toBe("c1");
+  });
+
+  it("يستبعد المجموعة المُمرَّرة في excludeCollectionId", () => {
+    expect(Dedup.findItemAcrossCollections(collections, "https://example.com/page", "c1")).toBeNull();
+  });
+
+  it("يعيد null إذا لم يوجد الرابط في أي مجموعة", () => {
+    expect(Dedup.findItemAcrossCollections(collections, "https://nowhere.com/")).toBeNull();
+  });
+
+  it("رابط غير صالح لا يرمي خطأ ويعيد null", () => {
+    expect(() => Dedup.findItemAcrossCollections(collections, "ليس رابطًا")).not.toThrow();
+    expect(Dedup.findItemAcrossCollections(collections, "ليس رابطًا")).toBeNull();
+  });
+});
+
 describe("KeepitDedup.mergeCollections", () => {
   it("يدمج مجموعة incoming جديدة الاسم بجانب existing بلا تعارض", () => {
     const existing = [{ id: "1", name: "A", color: "indigo", pinned: false, items: [] }];

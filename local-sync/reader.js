@@ -13,6 +13,7 @@
 import { getDirectoryHandle } from "./handle-store.js";
 import { extractExportCollections, ImportSchemaError } from "./import-schema.js";
 import { DEFAULT_FILE_NAME, SYNC_ERRORS } from "./constants.js";
+import { mapDomError } from "./dom-error.js";
 
 /**
  * @param {{ fileName?: string }} params
@@ -66,19 +67,6 @@ export async function readStateFromLocalFolder({ fileName }) {
     if (err instanceof ImportSchemaError) {
       return { ok: false, error: err.code };
     }
-    return { ok: false, error: mapDomError(err) };
+    return { ok: false, error: mapDomError(err, SYNC_ERRORS.READ_FAILED, "read failed") };
   }
-}
-
-/** @param {unknown} err */
-function mapDomError(err) {
-  const name = err && typeof err === "object" && "name" in err ? String(err.name) : "";
-  if (name === "NotAllowedError" || name === "SecurityError") {
-    return SYNC_ERRORS.PERMISSION_REQUIRED;
-  }
-  if (name === "NotFoundError") {
-    return SYNC_ERRORS.FOLDER_MISSING;
-  }
-  console.error("[Keepit local sync] read failed", err);
-  return SYNC_ERRORS.READ_FAILED;
 }

@@ -636,6 +636,9 @@ input, textarea, select, button { font-family: inherit; font-size: inherit; }
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  /* Detect the name's own direction instead of inheriting the page's RTL
+     direction, otherwise Latin names get truncated on the wrong side. */
+  unicode-bidi: plaintext;
 }
 .collection-row--selected .collection-row__name { font-weight: var(--fw-semibold); }
 .collection-row__chevron { color: var(--color-text-tertiary); flex-shrink: 0; transition: transform var(--transition-base), color var(--transition-fast); }
@@ -897,6 +900,9 @@ body { width: 384px; }
   flex: 1;
   overflow-y: auto;
   scrollbar-gutter: stable;
+  /* نفس تلميح التمرير المضاف لصفحة الخيارات — راجع options/main.css */
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black 20px, black calc(100% - 20px), transparent);
+  mask-image: linear-gradient(to bottom, transparent, black 20px, black calc(100% - 20px), transparent);
   padding: var(--space-3);
   display: flex;
   flex-direction: column;

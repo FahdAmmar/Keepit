@@ -33,7 +33,7 @@ const DEFAULT_STATUS = Object.freeze({
   folderName: /** @type {string | null} */ (null),
   lastSyncedAt: /** @type {number | null} */ (null),
   lastError: /** @type {string | null} */ (null),
-  pullMode: PULL_MODE.REPLACE,
+  pullMode: PULL_MODE.MERGE,
   lastPulledAt: /** @type {number | null} */ (null),
   lastPullError: /** @type {string | null} */ (null),
 });
@@ -377,7 +377,7 @@ function buildPullModeGroup(locale, bodyContainer) {
  * @param {{value: string, titleKey: string, descKey: string, warningKey?: string}} option
  */
 function buildPullModeOption(locale, bodyContainer, { value, titleKey, descKey, warningKey }) {
-  const currentMode = currentStatus.pullMode || PULL_MODE.REPLACE;
+  const currentMode = currentStatus.pullMode || PULL_MODE.MERGE;
   const isSelected = currentMode === value;
 
   const card = document.createElement("label");
@@ -566,7 +566,7 @@ async function onReconnect(bodyContainer) {
       // إعادة اتصال، وليس اتصالاً أول — نحترم وضع المستخدم المُختار (عادة
       // "استبدال") ليلتقط أي حذف حصل في متصفحات أخرى أثناء غياب هذا
       // المتصفح، بدل تجاهله كما كان يحدث بفرض "دمج" هنا سابقًا.
-      await reconcileThenPush(bodyContainer, currentStatus.pullMode || PULL_MODE.REPLACE);
+      await reconcileThenPush(bodyContainer, currentStatus.pullMode || PULL_MODE.MERGE);
       return;
     }
     await persistStatus({ lastError: SYNC_ERRORS.PERMISSION_REQUIRED });

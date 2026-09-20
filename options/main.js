@@ -1058,6 +1058,7 @@
             moveItemTargetLabel: "نقل إلى",
             moveItemConfirmAction: "نقل",
             moveItemNoOtherCollections: "لا توجد مجموعة أخرى للنقل إليها",
+            moveItemDuplicateHint: "تحتوي على هذا الرابط بالفعل",
             toastItemMoved: 'تم نقل الموقع إلى "{name}"',
             toastItemMoveFailed: "تعذر نقل الموقع",
             toastItemAdded: "\u062A\u0645\u062A \u0627\u0644\u0625\u0636\u0627\u0641\u0629 \u0625\u0644\u0649 \u0627\u0644\u0645\u062C\u0645\u0648\u0639\u0629",
@@ -1082,6 +1083,10 @@
             pinCollection: "\u062A\u062B\u0628\u064A\u062A \u0627\u0644\u0645\u062C\u0645\u0648\u0639\u0629",
             unpinCollection: "\u0625\u0644\u063A\u0627\u0621 \u0627\u0644\u062A\u062B\u0628\u064A\u062A",
             editCollectionAction: "\u062A\u0639\u062F\u064A\u0644 \u0627\u0644\u0645\u062C\u0645\u0648\u0639\u0629",
+            duplicateCollectionAction: "نسخ المجموعة",
+            duplicateCollectionNameTemplate: "نسخة من {name}",
+            toastCollectionDuplicated: 'تم نسخ المجموعة إلى "{name}"',
+            toastCollectionDuplicateFailed: "تعذر نسخ المجموعة",
             deleteCollectionAction: "\u062D\u0630\u0641 \u0627\u0644\u0645\u062C\u0645\u0648\u0639\u0629",
             newCollectionAction: "\u0645\u062C\u0645\u0648\u0639\u0629 \u062C\u062F\u064A\u062F\u0629",
             openAllAction: "\u0641\u062A\u062D \u0627\u0644\u0643\u0644",
@@ -1184,6 +1189,7 @@
             moveItemTargetLabel: "Move to",
             moveItemConfirmAction: "Move",
             moveItemNoOtherCollections: "There's no other collection to move this to",
+            moveItemDuplicateHint: "already has this link",
             toastItemMoved: 'Moved to "{name}"',
             toastItemMoveFailed: "Couldn't move the item",
             toastItemAdded: "Added to collection",
@@ -1208,6 +1214,10 @@
             pinCollection: "Pin collection",
             unpinCollection: "Unpin collection",
             editCollectionAction: "Edit collection",
+            duplicateCollectionAction: "Duplicate collection",
+            duplicateCollectionNameTemplate: "Copy of {name}",
+            toastCollectionDuplicated: 'Duplicated as "{name}"',
+            toastCollectionDuplicateFailed: "Couldn't duplicate the collection",
             deleteCollectionAction: "Delete collection",
             newCollectionAction: "New collection",
             openAllAction: "Open all",
@@ -1398,6 +1408,37 @@
         let o = await P(),
             r = oe(o, t);
         return r.color = e, r.updatedAt = Date.now(), await z(o), r
+    }
+    // ينسخ مجموعة كاملة بعناصرها. يُعطى كل عنصر معرّفًا جديدًا (لا يُعاد
+    // استخدام المعرّفات الأصلية) حتى لا يظهر نفس المعرّف في مجموعتين
+    // معًا، وهو افتراض تعتمد عليه آلية سلة المحذوفات (diff.js) لتمييز
+    // "النقل" عن "الحذف الفعلي" بمطابقة المعرّفات عبر كل المجموعات.
+    async function duplicateCollection(t) {
+        let e = await P(),
+            o = oe(e, t);
+        if (e.collections.length >= 200) throw new $(a("serviceMaxCollectionsReached", {
+            max: 200
+        }));
+        let i = a("duplicateCollectionNameTemplate", {
+                name: o.name
+            }),
+            l = i,
+            m = 2;
+        for (; globalThis.KeepitDedup && globalThis.KeepitDedup.findDuplicateCollection(e.collections, l);) l = `${i} (${m})`, m++;
+        let now = Date.now(),
+            clone = {
+                id: B(),
+                name: l,
+                color: o.color,
+                pinned: !1,
+                createdAt: now,
+                updatedAt: now,
+                items: o.items.map(g => ({
+                    ...g,
+                    id: B()
+                }))
+            };
+        return e.collections.push(clone), e.lastUsedCollectionId = clone.id, await z(e), clone
     }
     async function Ye(t) {
         let e = await P(),
@@ -1716,6 +1757,7 @@
             search: '<circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.35-4.35"/>',
             pin: '<path d="M12 3c3.3 0 6 2.6 6 5.9 0 4.4-6 12.1-6 12.1S6 13.3 6 8.9C6 5.6 8.7 3 12 3Z"/><circle cx="12" cy="8.8" r="2.2"/>',
             pencil: '<path d="M4 20l.9-3.9L16.6 4.4a1.5 1.5 0 0 1 2.1 0l1 1a1.5 1.5 0 0 1 0 2.1L8 19.1 4 20Z"/>',
+            copy: '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
             folderOpen: '<path d="M3.5 8V6.2A1.7 1.7 0 0 1 5.2 4.5h4l1.8 2h7.3a1.7 1.7 0 0 1 1.7 1.7v.8M3.5 8h16.8a1 1 0 0 1 1 1.2l-1.6 8a1.7 1.7 0 0 1-1.7 1.3H5.3a1.7 1.7 0 0 1-1.7-1.4L2 9.3A1 1 0 0 1 3 8Z"/>',
             link: '<path d="M9.5 14.5 14.5 9.5M10.8 6.8l1.1-1.1a3.5 3.5 0 0 1 5 5l-1.1 1.1M13.2 17.2l-1.1 1.1a3.5 3.5 0 0 1-5-5l1.1-1.1"/>',
             alertTriangle: '<path d="M12 4.5 21 19.5H3L12 4.5Z"/><path d="M12 10v4.2M12 17.2h.01"/>',
@@ -2026,14 +2068,16 @@
             type: "button",
             className: "btn btn--icon btn--lang",
             attrs: {
-                "aria-label": a("languageSwitchAriaLabel")
+                "aria-label": a("languageSwitchAriaLabel"),
+                title: a("languageSwitchAriaLabel")
             },
             onClick: () => t.onToggleLocale()
         }, [o]), n("button", {
             type: "button",
             className: "btn btn--icon",
             attrs: {
-                "aria-label": e ? a("themeSwitchToLight") : a("themeSwitchToDark")
+                "aria-label": e ? a("themeSwitchToLight") : a("themeSwitchToDark"),
+                title: e ? a("themeSwitchToLight") : a("themeSwitchToDark")
             },
             onClick: () => t.onToggleTheme()
         }, [v(e ? "sun" : "moon")])])])
@@ -2055,7 +2099,10 @@
                 color: e.color
             }
         }), n("span", {
-            className: "collection-row__name"
+            className: "collection-row__name",
+            attrs: {
+                title: e.name
+            }
         }, [e.name]), n("span", {
             className: "count-badge"
         }, [String(e.items.length)]), n("span", {
@@ -2157,6 +2204,10 @@
                 iconName: "pencil",
                 label: a("editCollectionAction"),
                 onClick: () => t.onEditCollection(r)
+            }, {
+                iconName: "copy",
+                label: a("duplicateCollectionAction"),
+                onClick: () => t.onDuplicateCollection(r)
             }, {
                 iconName: "trash",
                 label: a("deleteCollectionAction"),
@@ -2488,11 +2539,19 @@
         return o.sort((r, i) => i.item.createdAt - r.item.createdAt)
     }
 
+    let searchDebounceTimer = null;
+
     function Q() {
         sidebarAsideEl || (pe(fe), sidebarAsideEl = buildSidebarShell({
             searchQuery: y.searchQuery,
             onSearchChange: e => {
-                y.searchQuery = e, Q()
+                y.searchQuery = e;
+                // البحث يمسح كل المجموعات والعناصر بالكامل (ao()) عند كل تغيير؛
+                // تأخير بسيط قبل إعادة الحساب (نفس قيمة DEBOUNCE_MS المستخدمة في
+                // search-enhance/constants.js) يمنع تكرار المسح مع كل ضغطة أثناء
+                // الكتابة السريعة. قيمة الحقل نفسها (e) تُحدَّث فورًا بلا تأخير.
+                clearTimeout(searchDebounceTimer);
+                searchDebounceTimer = setTimeout(Q, 120);
             },
             onCreateCollection: () => Nt()
         }), optionsMainEl = n("main", {
@@ -2505,6 +2564,7 @@
             },
             onTogglePin: e => void co(e),
             onEditCollection: e => so(e),
+            onDuplicateCollection: e => void duplicateCollectionHandler(e),
             onDeleteCollection: e => void It(e)
         }), pe(optionsMainEl), optionsMainEl.append(lo())
     }
@@ -2587,6 +2647,16 @@
     async function co(t) {
         await Ye(t.id)
     }
+    async function duplicateCollectionHandler(t) {
+        try {
+            let clone = await duplicateCollection(t.id);
+            R.show(a("toastCollectionDuplicated", {
+                name: clone.name
+            }), "success")
+        } catch (e) {
+            R.show(e instanceof Error ? e.message : a("toastCollectionDuplicateFailed"), "error")
+        }
+    }
     async function It(t) {
         await Ne(document.body, {
             title: a("deleteCollectionDialogTitle"),
@@ -2627,11 +2697,14 @@
         let select = n("select", {
                 className: "input",
                 id: "move-item-target-select"
-            }, targets.map(g => n("option", {
-                attrs: {
-                    value: g.id
-                }
-            }, [g.name]))),
+            }, targets.map(g => {
+                let dup = globalThis.KeepitDedup && globalThis.KeepitDedup.findDuplicateItem(g.items, r.url, r.title).url;
+                return n("option", {
+                    attrs: {
+                        value: g.id
+                    }
+                }, [dup ? `${g.name} — ${a("moveItemDuplicateHint")}` : g.name])
+            })),
             form = n("form", {
                 className: "collection-form"
             }, [n("div", {

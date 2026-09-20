@@ -37,8 +37,10 @@ server, and no one but you ever has access to what you've saved.
 ### 🗂️ Visual organization
 - Color-coded collections (Indigo, Sky, Violet, Emerald, Amber, Rose, Slate) so you can tell categories apart at a glance.
 - Pin important collections to the top.
+- Duplicate a whole collection (with fresh copies of its sites) as a starting point for a similar one.
 - Add text notes to any saved site.
 - Move a saved site to a different collection with one click, right from its own row — no need to delete and re-save it.
+- A saved site already present in another collection is flagged (in the quick-add card and the move dialog) so you know before you save it twice.
 - Search across everything you've saved — matching **collection names** surfaces the whole collection (with an inline preview of its sites), not just individual sites whose title, URL, or note happens to match.
 
 ### ⚡ Save from anywhere, instantly

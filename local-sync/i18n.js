@@ -44,9 +44,9 @@ const STRINGS = {
     pullIntro:
       "بالإضافة إلى الحفظ التلقائي أعلاه، يتحقق Keepit دوريًا من هذا الملف نفسه ليسحب أي تصنيفات أو مواقع أُضيفت من متصفح آخر يشير إلى المجلد نفسه — تلقائيًا وبلا أي خطوة يدوية.",
     pullModeLabel: "عند العثور على تغييرات في الملف",
-    pullModeMergeTitle: "دمج آمن",
+    pullModeMergeTitle: "دمج آمن (الافتراضي)",
     pullModeMergeDesc: "يُضيف فقط الجديد من الملف. لا يحذف أي تصنيف أو موقع موجود لديك أبدًا — لذا لن تنتقل عمليات الحذف من متصفح آخر.",
-    pullModeReplaceTitle: "استبدال كامل (موصى به)",
+    pullModeReplaceTitle: "استبدال كامل (متقدّم)",
     pullModeReplaceDesc:
       "يجعل محتوى الملف هو المرجع الكامل، وينقل عمليات الحذف أيضًا.",
     pullModeReplaceWarning: "تجنّب استخدام متصفحين في نفس الوقت؛ استخدم متصفحًا واحدًا في كل مرة لتفادي فقدان أي تغييرات متزامنة.",
@@ -101,9 +101,9 @@ const STRINGS = {
     pullIntro:
       "In addition to the automatic saving above, Keepit periodically checks this same file to pull in any collections or sites added from another browser pointed at the same folder — automatically, with no manual step.",
     pullModeLabel: "When changes are found in the file",
-    pullModeMergeTitle: "Safe merge",
+    pullModeMergeTitle: "Safe merge (default)",
     pullModeMergeDesc: "Only adds what's new in the file. Never deletes any collection or site you already have — so deletions from another browser won't transfer.",
-    pullModeReplaceTitle: "Full replace (recommended)",
+    pullModeReplaceTitle: "Full replace (advanced)",
     pullModeReplaceDesc:
       "Makes the file's content the complete source of truth, carrying over deletions too.",
     pullModeReplaceWarning: "Avoid using two browsers at the same time; use one at a time to prevent losing any simultaneous changes.",

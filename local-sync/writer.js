@@ -14,6 +14,7 @@
 import { getDirectoryHandle } from "./handle-store.js";
 import { buildExportPayload } from "./export-schema.js";
 import { DEFAULT_FILE_NAME, SYNC_ERRORS } from "./constants.js";
+import { mapDomError } from "./dom-error.js";
 
 const UNSAFE_FILENAME_CHARS = /[\/\\:*?"<>|\u0000-\u001F]/;
 
@@ -52,7 +53,7 @@ export async function writeStateToLocalFolder({ state, fileName }) {
 
     return { ok: true, syncedAt: Date.now(), fileName: safeName };
   } catch (err) {
-    return { ok: false, error: mapDomError(err) };
+    return { ok: false, error: mapDomError(err, SYNC_ERRORS.WRITE_FAILED, "write failed") };
   }
 }
 
@@ -70,17 +71,4 @@ function sanitizeFileName(name) {
   if (UNSAFE_FILENAME_CHARS.test(trimmed)) return "";
   if (trimmed.length > 200) return "";
   return trimmed.toLowerCase().endsWith(".json") ? trimmed : `${trimmed}.json`;
-}
-
-/** @param {unknown} err */
-function mapDomError(err) {
-  const name = err && typeof err === "object" && "name" in err ? String(err.name) : "";
-  if (name === "NotAllowedError" || name === "SecurityError") {
-    return SYNC_ERRORS.PERMISSION_REQUIRED;
-  }
-  if (name === "NotFoundError") {
-    return SYNC_ERRORS.FOLDER_MISSING;
-  }
-  console.error("[Keepit local sync] write failed", err);
-  return SYNC_ERRORS.WRITE_FAILED;
 }

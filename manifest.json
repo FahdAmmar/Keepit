@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Keepit",
-  "version": "1.13.3",
+  "version": "1.14.0",
   "description": "احفظ مواقعك المفضّلة في مجموعات منظّمة وملوّنة.",
   "icons": {
     "16": "icons/icon16.png",

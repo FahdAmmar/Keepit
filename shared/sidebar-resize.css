@@ -1,0 +1,52 @@
+/**
+ * shared/sidebar-resize.css
+ * ---------------------------------------------------------------------------
+ * مقبض سحب لتوسيع/تضييق الشريط الجانبي في صفحة الخيارات (راجع sidebar-resize.js
+ * للمنطق). نشط فقط في نفس نقطة الكسر التي يتحول عندها الشريط الجانبي إلى عمود
+ * ثابت في options/main.css (min-width: 860px) — أسفلها الشريط عمود كامل
+ * العرض، فلا معنى لتوسيعه.
+ */
+.sidebar-resize-handle {
+  display: none;
+}
+
+@media (min-width: 860px) {
+  .sidebar-resize-handle {
+    display: block;
+    flex-shrink: 0;
+    width: 6px;
+    margin-inline: -3px;
+    position: relative;
+    z-index: 1;
+    cursor: col-resize;
+    touch-action: none;
+    background: transparent;
+    border: none;
+    padding: 0;
+  }
+
+  .sidebar-resize-handle::after {
+    content: "";
+    position: absolute;
+    inset-block: var(--space-3);
+    inset-inline-start: 2px;
+    width: 2px;
+    border-radius: var(--radius-full);
+    background: var(--color-border);
+    opacity: 0;
+    transition: opacity var(--transition-fast), background var(--transition-fast);
+  }
+
+  .sidebar-resize-handle:hover::after,
+  .sidebar-resize-handle:focus-visible::after,
+  .sidebar-resize-handle.is-dragging::after {
+    opacity: 1;
+    background: var(--color-primary);
+  }
+
+  .sidebar-resize-handle:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+}
